@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "catalog": {
+      "command": "node",
+      "args": ["${CLAUDE_PROJECT_DIR:-.}/mcp-server/dist/server.js"]
+    },
+    "filesystem": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/scripts/fs-roots-guard.mjs",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.7.10",
+        "${CLAUDE_PROJECT_DIR:-.}/app/data"
+      ]
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "mcp-server-fetch==2026.7.10",
+        "--with",
+        "mcp==1.29.0",
+        "mcp-server-fetch"
+      ]
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/x/repos/readonly",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
