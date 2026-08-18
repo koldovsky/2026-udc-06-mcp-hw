@@ -2,8 +2,10 @@
 
 Тонкий протокольний адаптер над каталогом з `app/`. Уся доменна логіка
 **імпортована** з `../../app/dist/index.js` — сервер лише форматує відповідь.
-Єдиний виняток: `check_stock` повторює порівняння `stock <= reorderLevel`, бо
-домен віддає тільки список (`lowStock`), а не статус одного SKU.
+Правило «чи треба дозамовляти» сервер ніде не повторює: `check_stock` питає про це
+`lowStock()`, а не порівнює `stock <= reorderLevel` вдруге. Інакше дві копії
+правила розійшлися б щойно домен змінив критерій, і `check_stock` почав би
+суперечити `low_stock` щодо того самого SKU.
 
 - SDK: `@modelcontextprotocol/server` **2.0.0** (покоління v2) + `zod` 4
 - Транспорт: stdio
@@ -26,7 +28,7 @@ npm run smoke                            # перевірка: піднімає 
 | Tool | Аргументи | Домен | Що повертає |
 |---|---|---|---|
 | `search_inventory` | `query: string` | `searchProducts` | Товари, де query збігається з назвою, SKU або категорією |
-| `check_stock` | `sku: string` | `findBySku` | Один товар + статус «треба замовити / OK» відносно `reorderLevel` |
+| `check_stock` | `sku: string` | `findBySku` + `lowStock` | Один товар + статус «треба замовити / OK», причому статус бере з `lowStock`, а не порівнює сам |
 | `low_stock` | — | `lowStock` | Усі позиції зі `stock <= reorderLevel`, від найменшого запасу |
 | `inventory_value` | — | `inventoryValue` | `sum(price × stock)` по всьому каталогу |
 
@@ -71,5 +73,8 @@ npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/l
 ```
 
 `npm run smoke` піднімає зібраний сервер по справжньому stdio і звіряє
-`low_stock`, `inventory_value` та ресурс із результатами доменних функцій —
-тобто ловить обидві типові поломки: незібраний `app/dist` і зміну API SDK.
+`low_stock`, `inventory_value`, `check_stock` та ресурс із результатами доменних
+функцій — тобто ловить типові поломки: незібраний `app/dist`, зміну API SDK і
+розходження `check_stock` з `low_stock` щодо того самого SKU. Він дотримується
+lifecycle протоколу (нічого не надсилає до відповіді на `initialize`), а таймер у
+ньому — лише шлях відмови, не умова успіху.

@@ -83,7 +83,7 @@ GitHub**, тобто його не можна скасувати редагув�
    **не читає**. Тому хост запускається так:
 
    ```sh
-   set -a; source .env; set +a && claude
+   set -a && . ./.env && set +a && exec claude
    ```
 
    Це не косметика: без цього кроку сервер отримає порожній заголовок
@@ -107,11 +107,13 @@ clean
 
 ## Доказ, що сервер справді працює
 
-`list_commits` на `Fyfar/2026-udc-06-mcp-hw` повернув реальну історію:
+`list_commits` на `Fyfar/2026-udc-06-mcp-hw`, гілка `ws06/Fyfar`, повернув
+реальну історію:
 
 ```text
-891a80e  Fix defects found by the homework dry run
-156ef09  WS6 homework: MCP over a seeded catalog domain
+8c0a63a  WS6: Yurii Kucherenko — MCP          Yurii Kucherenko
+891a80e  Fix defects found by the homework dry run   Vyacheslav Koldovskyy
+156ef09  WS6 homework: MCP over a seeded catalog domain  Vyacheslav Koldovskyy
 ```
 
 Тобто токен дійсний, заголовок підставився, звужений toolset читання не ламає.

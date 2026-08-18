@@ -48,31 +48,32 @@ them.
 ## MCPs
 
 Configured in `.mcp.json` at the repo root. Full rationale, scope and
-verification: `docs/mcp/servers.md`. Load `.env` before starting the host
-(`set -a; source .env; set +a`) — the host expands `${ENV_VAR}` from its own
-environment and does not read `.env` itself.
+verification: `docs/mcp/servers.md`. Load `.env` before starting the host with
+`set -a && . ./.env && set +a && exec claude` — the host expands `${ENV_VAR}` from
+its own environment and does not read `.env` itself.
 
 | Server | Transport | Use it for | Do not use it for |
 |---|---|---|---|
 | `catalog` | stdio | Reading this catalog via `low_stock` / `inventory_value` / `search_inventory` / `check_stock` | Anything else — it has no other tool |
-| `filesystem` | stdio | Reading `data/catalog.json` and sources here | Any write — see the warning below |
+| `filesystem` | stdio | Reading `data/catalog.json` | Anything outside `data/` (out of scope) and any write |
 | `fetch` | stdio | MCP spec and docs lookups | Anything that would send repo content outward |
 | `context7` | http | Current MCP TypeScript SDK docs (Task B) | Queries containing repo or personal data — they leave the machine |
 | `github` | http | Read-only history/files of this fork | Writes — the toolset and the PAT both forbid them |
 
-**`filesystem` reaches the whole repo, not just `data/`.** The config passes
-`app/data`, but Claude Code answers `roots/list` with the project root and
-`server-filesystem` prefers roots over its own launch arguments — so
-`list_allowed_directories` returns the repo root. Treat the path argument as a
-statement of intent, never as a sandbox. Evidence and the client-by-client
-comparison are in `docs/mcp/servers.md`.
+**`filesystem` is scoped to `data/`, and that scope holds now.** It did not at
+first: the config passes `app/data`, but Claude Code answers `roots/list` with the
+project root and `server-filesystem` prefers roots over its own launch arguments,
+which silently widened the scope to the whole repo.
+`scripts/fs-roots-guard.mjs` strips the `roots` capability out of the `initialize`
+request, so the server keeps its own argument. `list_allowed_directories` now
+returns `app/data`, and `app/src` answers `Access denied`. Measurements are in
+`docs/mcp/servers.md`.
 
-Writes are closed separately, at host level: `.claude/settings.json` denies
-`mcp__filesystem__write_file` / `edit_file` / `move_file` / `create_directory`,
-so those four are absent from the session (`docs/mcp/SECURITY.md` §3.6).
-
-Practical consequence for work in `app/`: that deny is a decision by *this*
-host, not a boundary around the process. The server itself still has OS access
-to every file here, so under a different host — or run directly over stdio — the
-two guardrails above (`data/catalog.json` is immutable, catalog signatures are
-frozen) are enforced by nothing except the agent respecting them.
+Two things follow for work in `app/`. Its reach is now exactly `data/`, which is
+where `catalog.json` lives, so this is the one server pointed straight at the A/B
+ground truth. And both protections are cooperative rather than enforced: the write
+tools are absent because `.claude/settings.json` denies them
+(`docs/mcp/SECURITY.md` §3.6), and the scope holds because the server honours its
+own argument. Run that server directly over stdio without the guard and both are
+gone, so the guardrails above (`data/catalog.json` is immutable, catalog
+signatures are frozen) still rest on the agent respecting them.

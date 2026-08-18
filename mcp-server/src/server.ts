@@ -88,13 +88,27 @@ server.registerTool(
     }),
   },
   async ({ sku }) => {
-    const product = findBySku(loadCatalog(), sku);
+    const catalog = loadCatalog();
+    const product = findBySku(catalog, sku);
     if (!product) return text(`No product with SKU "${sku}".`);
 
-    const status =
-      product.stock <= product.reorderLevel
-        ? `NEEDS REORDER — at or below reorder level (${product.reorderLevel})`
-        : `OK — ${product.stock - product.reorderLevel} units above reorder level (${product.reorderLevel})`;
+    // Ask the domain whether this SKU needs reordering instead of re-testing
+    // `stock <= reorderLevel` here. Two copies of that rule would drift the
+    // moment the domain changed its criterion, and `check_stock` would then
+    // disagree with `low_stock` about the same SKU.
+    //
+    // Deliberately NOT solved by adding a `needsReorder()` export to
+    // app/src/catalog.ts. That file is seeded domain code: AGENTS.md freezes its
+    // exported signatures, .coderabbit.yaml says of app/src/** that it "НЕ мав
+    // змінюватись", and app/AGENTS.md would additionally require a colocated case
+    // in catalog.test.ts. That is two protected files edited to replace one `.some()`
+    // call. Reusing `lowStock` gives the same single source of truth for the rule
+    // at zero cost there, which is why this is the chosen form rather than a
+    // workaround. Enforced by `npm run smoke` (ids 6 and 7).
+    const needsReorder = lowStock(catalog).some((p) => p.sku === product.sku);
+    const status = needsReorder
+      ? `NEEDS REORDER — reorder level ${product.reorderLevel}`
+      : `OK — ${product.stock - product.reorderLevel} units above its reorder level (${product.reorderLevel})`;
 
     return text(`${line(product)}\n${status}`);
   },
