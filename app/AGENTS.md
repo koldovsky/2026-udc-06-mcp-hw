@@ -45,5 +45,9 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Project-level config: `.cursor/mcp.json` (Cursor). Both servers are token-free.
+
+- **filesystem** (`@modelcontextprotocol/server-filesystem`) — scoped to `app/data` so the agent can read the seeded `catalog.json` without seeing the rest of the repo.
+- **memory** (`@modelcontextprotocol/server-memory`) — a local knowledge graph for facts that should persist across chats; it does not read or write this package's files.
