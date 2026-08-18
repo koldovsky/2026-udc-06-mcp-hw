@@ -124,6 +124,12 @@ server.registerTool(
       "lowest stock first. Use when the user asks what needs reordering, " +
       "what is running low, or what to restock. Takes no arguments.",
     annotations: READ_ONLY,
+    // Explicit empty schema, not an omitted one: the host then advertises
+    // `{"type":"object","properties":{}}` instead of no schema at all, so a
+    // client can tell "this tool takes nothing" from "this tool declared
+    // nothing". Same reason `additionalProperties` matters — an absent
+    // contract is not the same as an empty one.
+    inputSchema: z.object({}),
   },
   async () => {
     const items = lowStock(loadCatalog());
@@ -149,6 +155,7 @@ server.registerTool(
       "the user asks what the inventory is worth or how much capital is tied " +
       "up in stock. Takes no arguments.",
     annotations: READ_ONLY,
+    inputSchema: z.object({}),
   },
   async () => {
     const catalog = loadCatalog();
