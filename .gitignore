@@ -40,3 +40,6 @@ nul
 # deliberately scope permissions there.
 .claude/*
 !.claude/settings.json
+
+# Project-local storage used by the memory MCP server.
+.mcp-memory.jsonl

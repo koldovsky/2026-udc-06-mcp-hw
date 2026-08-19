@@ -47,3 +47,23 @@ them.
 
 <!-- Task A adds a "## MCPs" section here, documenting the servers this
      project expects to have connected and what each is for. -->
+
+## MCPs
+
+This project expects the following project-scoped servers from the root
+`.mcp.json` configuration:
+
+- `catalog-filesystem` — allows inspection of the seeded catalog. Its intended
+  scope is only `app/data`; do not widen it to the repository, home directory,
+  or filesystem root. Although the upstream server advertises mutating tools,
+  do not approve them for this read-only catalog exercise.
+- `project-memory` — keeps synthetic workshop notes in the gitignored
+  `.mcp-memory.jsonl` knowledge graph. Never store secrets, PII, or real client
+  data in it.
+- `catalog-server` — exposes the tested catalog domain as four read-only tools
+  and the `inventory://catalog` summary resource. It imports this package's
+  compiled public API, so run `npm run build` in `app/` before starting it.
+
+The public-server packages are pinned, and none of the three servers require
+secrets. See `docs/mcp/servers.md` for the observed tools, verification
+evidence, scope limitations, and accepted risks.
