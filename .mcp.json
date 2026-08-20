@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.7.10",
+        "${workspaceFolder}/app/data"
+      ],
+      "env": {}
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory@2026.7.4"
+      ],
+      "env": {}
+    },
+    "catalog-server": {
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/mcp-server/dist/server.js"
+      ],
+      "env": {}
+    }
+  }
+}
+
+
+
+
