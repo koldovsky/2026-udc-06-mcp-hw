@@ -13,11 +13,32 @@ gh repo fork koldovsky/2026-udc-06-mcp-hw --clone
 cd 2026-udc-06-mcp-hw
 git checkout -b ws06/<github-username>
 
-cd app && npm install && npm test && npm run build && cd ..
+npm run setup     # встановить і збере обидва пакети: app/ і mcp-server/
+npm run verify    # тести app/ + перевірка, що MCP-сервер відповідає
 ```
 
-`npm test` має бути зеленим (8 тестів), а `npm run build` — створити
-`app/dist/`, з якого ваш MCP-сервер імпортуватиме доменні функції.
+| Команда | Що робить |
+|---|---|
+| `npm run setup` | `npm install` у корені (звідти запускається `filesystem`-сервер) + `npm install` і `npm run build` у `app/` та `mcp-server/` |
+| `npm test` | Тести домену (має бути 8 зелених) |
+| `npm run check` | Говорить з `mcp-server/` по stdio так само, як хост, і звіряє відповіді з ground truth |
+| `npm run probe` | Те саме, але друкує сирі кадри JSON-RPC. Працює в будь-якій оболонці |
+| `npm run test:proxy` | 13 спроб обходу фільтра `scripts/fs-proxy.mjs`: traversal, симлінки, 8.3-імена, device-шляхи |
+| `npm run verify` | `test` + `check` + `test:proxy` разом |
+
+`.mcp.json` хост читає **лише на старті**: після правки конфігу сервери в
+поточній сесії лишаються старими, тож зміну треба перевіряти в новій. Ознака,
+що проксі активний, — `list_allowed_directories()` повертає `…\app\data`, а не
+корінь репо, і `.env` віддає `Refused by fs-proxy:`.
+
+Обидва `dist/` і всі `node_modules/` гітігноряться, тому **після свіжого клону
+`npm run setup` обов'язковий**: без нього `.mcp.json` вказує на два неіснуючі
+файли — `mcp-server/dist/server.js` і
+`node_modules/@modelcontextprotocol/server-filesystem/dist/index.js` — і хост не
+запустить ні власний сервер, ні `filesystem`. Раніше другий підтягувався через
+`npx` на льоту; тепер пакет пінований у `package-lock.json` за хешем, тож
+поломка стала гучною замість тихої. `npm run check` ловить саме цей випадок і
+каже, яку команду запустити.
 
 ## Що вже є в репо
 
@@ -41,6 +62,7 @@ cd app && npm install && npm test && npm run build && cd ..
 - `docs/mcp/SECURITY.md` — threat model (Task C)
 - `docs/ab-validation.md` — A/B-порівняння (Task D)
 - `docs/task-e-bonus.md` — бонус, один шлях (Task E)
+- `package.json` + `scripts/check-mcp.mjs` — кореневі скрипти setup/verify
 
 ## Головне правило безпеки
 

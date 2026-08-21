@@ -16,9 +16,12 @@ Baseline guidance for an Agentic IDE working in **this homework repo**.
   - `app/src/loader.ts` — `loadCatalog()`, the only filesystem touch.
   - `app/data/catalog.json` — 24 synthetic products. **Do not edit** — Task D
     compares against these numbers.
-  - `cd app && npm install && npm test` is green from the start;
-    `npm run build` produces `app/dist/` which `mcp-server/` imports.
-- `mcp-server/` does **not exist yet** — the participant creates it in Task B.
+  - `npm run setup` from the repo root installs and builds both packages;
+    `npm test` is green (8 tests), and `app/dist/` is what `mcp-server/` imports.
+- `mcp-server/` — the custom MCP server (Task B, built): 4 read-only tools and
+  1 resource over this domain, importing `app/dist` rather than reimplementing
+  it. `npm run check` launches it over stdio the way the host does and compares
+  its answers to the seeded catalog. See `mcp-server/README.md`.
 - `materials/domain-brief.md` is the source of truth for what the server should
   expose; `materials/ab-question.md` holds the fixed A/B prompt.
 - Graded by CodeRabbit (`.coderabbit.yaml`) against the Definition of Done in
@@ -51,7 +54,8 @@ Baseline guidance for an Agentic IDE working in **this homework repo**.
 
 ## How to verify
 
-Before opening a PR: `cd app && npm test` is green, `mcp-server/` actually
-starts and its tools appear in your host, `docs/mcp/SECURITY.md` describes
-*your* configuration (not generic advice), `docs/ab-validation.md` shows a real
-recorded comparison, and `git grep` finds no tokens.
+Before opening a PR: `npm run setup && npm run verify` is green (what each
+script does: the command table in [`README.md`](./README.md)), its tools appear
+in your host, `docs/mcp/SECURITY.md` describes *your* configuration (not generic
+advice), `docs/ab-validation.md` shows a real recorded comparison, and
+`git grep` finds no tokens.
