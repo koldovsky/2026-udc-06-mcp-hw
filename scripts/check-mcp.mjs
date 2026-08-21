@@ -103,6 +103,8 @@ const rpc = [
   },
 ];
 
+const EXPECTED_REPLIES = rpc.filter((m) => m.id != null).length;
+
 // cwd is the repo root on purpose: the server must not depend on being
 // launched from its own directory.
 const child = spawn(process.execPath, [serverEntry], {
@@ -131,7 +133,7 @@ child.stdout.on("data", (chunk) => {
       /* partial frame — ignore */
     }
   }
-  if (replies.size >= 8) child.stdin.end();
+  if (replies.size >= EXPECTED_REPLIES) child.stdin.end();
 });
 
 child.stdin.write(rpc.map((m) => JSON.stringify(m)).join("\n") + "\n");

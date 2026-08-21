@@ -165,6 +165,15 @@ child.on("error", (e) => {
   process.exit(2);
 });
 
+// Closing stdin is how a host shuts a stdio MCP server down. Without this the
+// EOF stops at the proxy: the child never sees it, both processes survive the
+// host restart, and on Windows killing the proxy does not reap the grandchild
+// either — so they accumulate, holding this directory open.
+process.stdin.on("end", () => child.stdin.end());
+process.on("exit", () => {
+  if (child.exitCode === null && child.signalCode === null) child.kill();
+});
+
 const send = (stream, msg) => stream.write(JSON.stringify(msg) + "\n");
 
 function refuse(id, reason) {
@@ -211,6 +220,19 @@ pump(process.stdin, child.stdin, (msg) => {
     delete msg.params.capabilities.roots;
     console.error("fs-proxy: withheld roots capability; child uses its own args");
     return false; // forward the modified initialize
+  }
+  // Withholding the capability is not enough on its own: the wrapped server
+  // handles `notifications/roots/list_changed` by calling `roots/list`
+  // unconditionally, WITHOUT re-checking the capability we just stripped. One
+  // such notification and the child adopts the host's answer — the repo root —
+  // undoing the paragraph above. The allowlist below still refuses every path,
+  // so nothing leaks either way, but the second layer would be gone and
+  // `list_allowed_directories()` would start reporting the repo root, which
+  // reads as "the proxy is broken". Drop the notification: a client that
+  // declares no `roots` capability has no business sending it.
+  if (msg.method === "notifications/roots/list_changed") {
+    console.error("fs-proxy: dropped roots/list_changed; child keeps its own args");
+    return true; // handled here; do not forward
   }
   if (msg.method !== "tools/call") return false;
   const { reason, args } = enforce(msg.params?.name, msg.params?.arguments);

@@ -44,7 +44,12 @@ function shortDir(dir) {
 
 const cases = [
   ["allowed file, as given", "read_text_file", { path: catalog }, "pass"],
-  ["allowed file, upper-case", "read_text_file", { path: catalog.toUpperCase() }, "pass"],
+  // Windows folds case, so the upper-case spelling must still resolve to the
+  // allowed file. On a case-sensitive filesystem it legitimately does not
+  // exist and refusing it is correct — skip rather than assert the opposite.
+  ...(process.platform === "win32"
+    ? [["allowed file, upper-case", "read_text_file", { path: catalog.toUpperCase() }, "pass"]]
+    : []),
   ["the secret, directly", "read_text_file", { path: dotenv }, "deny"],
   [
     "traversal out of app/data",

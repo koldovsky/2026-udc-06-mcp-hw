@@ -53,7 +53,7 @@ in `.mcp.json` at the repo root; their permissions are scoped in
 
 | Server | What it is for here | Scope |
 |---|---|---|
-| `filesystem` | Reading `data/catalog.json` — the Task D ground truth — through an MCP channel rather than the host's own file tools. | Launched with `./app/data`, but **that argument is not the effective boundary** — this host supplies the repo root via `roots`. [`SECURITY.md`](../docs/mcp/SECURITY.md) T-2. |
+| `filesystem` | Reading `data/catalog.json` — the Task D ground truth — through an MCP channel rather than the host's own file tools. | Wrapped in [`scripts/fs-proxy.mjs`](../scripts/fs-proxy.mjs): an allowlist of **exactly one file**, `data/catalog.json`. The launch argument `./app/data` is *not* what holds the line — this host answers `roots` with the repo root — so the proxy withholds that capability and checks every path itself. [`SECURITY.md`](../docs/mcp/SECURITY.md) T-2. |
 | `memory` | Carrying domain facts across sessions: A/B run results, scope decisions, ground-truth numbers. | Its own knowledge graph at `.mcp-memory/memory.jsonl` (`MEMORY_FILE_PATH`). No filesystem access at all. |
 | `catalog` | **Ours** (`mcp-server/`, Task B) — 4 read-only tools + 1 resource over this library. | No filesystem scope of its own: it imports `dist/` and reads `data/catalog.json` through `loadCatalog()`. [`mcp-server/README.md`](../mcp-server/README.md). |
 
@@ -68,10 +68,15 @@ in `.mcp.json` at the repo root; their permissions are scoped in
 - **Keep the `filesystem` launch argument at `app/data` — and do not trust
   it.** The server takes directories only (a file path is rejected at startup),
   so this is the narrowest argument available, and it is the correct
-  declaration of intent — other hosts do honour it. In *this* host the `deny`
-  list is what actually holds the line.
-- **Pin server versions.** Both are pinned in `.mcp.json`
-  (`@2026.7.10` / `@2026.7.4`). `npx -y ...@latest` would run unreviewed
+  declaration of intent — other hosts do honour it. In *this* host it is
+  `scripts/fs-proxy.mjs` that actually holds the line: it narrows the boundary
+  from a directory to the single file `data/catalog.json`, and refuses
+  everything else before the request reaches the server. The host `deny` list
+  is a separate layer beside it, matched on **tool name, not path**.
+- **Pin server versions.** `memory` is pinned in `.mcp.json`
+  (`@2026.7.4`); `filesystem` is a devDependency of the root `package.json`
+  (`2026.7.10`), so it is pinned by the lockfile and launched from
+  `node_modules` rather than fetched. `npx -y ...@latest` would run unreviewed
   upstream code with filesystem access.
 - **Secrets stay as `${ENV_VAR}` — but that alone guarantees nothing.** No
   token is needed here; `MEMORY_FILE_PATH` is `${MCP_MEMORY_FILE}` because the
