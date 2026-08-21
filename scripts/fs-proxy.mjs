@@ -159,7 +159,19 @@ const child = isJs
       stdio: ["pipe", "pipe", "inherit"],
       shell: process.platform === "win32",
     });
-child.on("exit", (code) => process.exit(code ?? 0));
+child.on("exit", (code) => {
+  // Let queued frames reach the host before leaving. `process.exit` discards
+  // whatever is still buffered in stdout, so a refusal or a final response
+  // written moments before the child died would vanish and the host would sit
+  // out its own timeout instead of seeing the answer. The timer is a floor,
+  // not a wait: a stuck pipe must not turn this into a hang.
+  const leave = () => process.exit(code ?? 0);
+  if (process.stdout.writableLength === 0) leave();
+  else {
+    process.stdout.once("drain", leave);
+    setTimeout(leave, 2000).unref();
+  }
+});
 child.on("error", (e) => {
   console.error(`fs-proxy: cannot launch child: ${e.message}`);
   process.exit(2);
@@ -190,6 +202,11 @@ function refuse(id, reason) {
 
 /** Newline-delimited JSON, forwarding anything we do not understand verbatim. */
 function pump(from, to, transform) {
+  // Decode as UTF-8 across chunk boundaries. Without this, `buf += chunk`
+  // stringifies each Buffer on its own, and a multi-byte character split by a
+  // 64KB pipe boundary becomes two U+FFFD. The frame still parses, so the
+  // corruption would reach the model silently.
+  from.setEncoding("utf8");
   let buf = "";
   from.on("data", (chunk) => {
     buf += chunk;

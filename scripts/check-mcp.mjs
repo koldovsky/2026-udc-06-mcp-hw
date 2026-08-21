@@ -112,6 +112,13 @@ const child = spawn(process.execPath, [serverEntry], {
   stdio: ["pipe", "pipe", "pipe"],
 });
 
+// stderr is where the server's own diagnostics go. Left unread it fills a pipe
+// nobody drains, so a server that dies while importing a module surfaces here
+// only as "tools/list -> 0" — exactly the silent failure this file exists to
+// eliminate. Captured now, printed below if anything goes wrong.
+let serverStderr = "";
+child.stderr.on("data", (chunk) => (serverStderr += chunk));
+
 const timer = setTimeout(() => {
   child.kill();
   bad("server did not answer within 15s");
@@ -225,6 +232,8 @@ loose?.found === true && loose?.sku === "KB-1001"
 
 // ── 5. Verdict ────────────────────────────────────────────────────────────
 if (problems.length) {
+  const noise = serverStderr.trim();
+  if (noise) console.log("\nServer stderr:\n" + noise.replace(/^/gm, "  "));
   console.log(`\n${problems.length} problem(s). See mcp-server/README.md.\n`);
   process.exit(1);
 }
