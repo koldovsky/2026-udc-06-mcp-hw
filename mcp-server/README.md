@@ -1,66 +1,35 @@
-# Скелет MCP-сервера (Task B)
+# catalog MCP-сервер
 
-Скопіюйте цю теку в `mcp-server/` у корені репо і допишіть TODO.
+Read-only адаптер над `app/`: tools `search_inventory`, `check_stock`, `low_stock` і resource `inventory://catalog`. Логіка імпортується з `app/dist`, не дублюється тут.
+
+## Збірка і запуск
+
+Сервер уже лежить у `mcp-server/`. Спочатку зберіть домен, потім цей пакет:
 
 ```bash
-cp -r docs/templates/mcp-server ./mcp-server
-cd mcp-server && npm install
-cd ../app && npm run build && cd ..   # сервер імпортує app/dist
+cd app && npm install && npm run build
+cd ../mcp-server && npm install && npm run build
+npm start
 ```
 
-Розкладка (важлива — не «спрощуйте» її):
+`npm start` запускає `node ./dist/server.js` і чекає JSON-RPC на stdin — це нормально. У Cursor той самий файл стартує з `.cursor/mcp.json` (ключ `catalog`): `node ${workspaceFolder}/mcp-server/dist/server.js`.
 
-```
+На PowerShell 5 замість `&&` ставте `;`.
+
+## Розкладка
+
+```text
 mcp-server/
-├── src/server.ts   ← пишете тут
-├── dist/server.js  ← сюди збирається
+├── src/server.ts
+├── dist/server.js
 ├── package.json
 └── tsconfig.json
 ```
 
-`src/` і `dist/` навмисно на однаковій глибині. TypeScript **не переписує**
-відносні імпорти при компіляції, тож `../../app/dist/index.js` коректний і в
-джерелі, і в збірці. Якщо покласти `server.ts` у корінь пакета — код
-скомпілюється без жодного попередження й **упаде на старті** з
-`ERR_MODULE_NOT_FOUND`.
+`src/` і `dist/` на однаковій глибині, щоб імпорт `../../app/dist/index.js` працював і в джерелі, і після `tsc`.
 
-## ⚠️ Про версії SDK — прочитайте перед тим, як гуглити приклади
+## Перевірка без хоста
 
-Офіційний TypeScript SDK зараз існує у **двох поколіннях**, і в інтернеті ви
-знайдете приклади для обох. Це головна причина, чому чужі туторіали можуть не
-запускатися:
-
-| | Пакет | Імпорти в прикладах |
-|---|---|---|
-| **v2 (нове)** | `@modelcontextprotocol/server` | `from '@modelcontextprotocol/server'` |
-| **v1 (старе)** | `@modelcontextprotocol/sdk` | `from '@modelcontextprotocol/sdk/server/mcp.js'` |
-
-Шаблон написаний під **v2**. Якщо ви свідомо берете v1 — це теж приймається,
-просто зазначте це в PR.
-
-**Точні сигнатури перевіряйте в документації свого встановленого SDK**
-([ts.sdk.modelcontextprotocol.io](https://ts.sdk.modelcontextprotocol.io/)) —
-API ще рухається, і сліпо скопійований зі статті код цілком може не зібратися.
-Вміння звірити приклад із версією, яка у вас реально стоїть, — частина
-завдання.
-
-## Що має вийти
-
-- **≥2 tools** — кожен з описом і схемою вхідних параметрів
-- **≥1 resource** — дані, які хост читає за URI
-- **read-only** — жодного запису, видалення чи мережевих викликів
-- логіка **імпортована** з `app/`, а не переписана заново
-
-## Перевірка
-
-1. Сервер стартує без помилок: `node ./dist/server.js` (має просто висіти —
-   він чекає на JSON-RPC у stdin, це нормально). Швидша перевірка, яка одразу
-   показує ваші tools:
-
-   ```bash
-   npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/list
-   ```
-2. Зареєструйте його в конфізі хоста і переконайтесь, що tools з'явилися.
-3. Якщо хост його не бачить — майже завжди винні **відносні шляхи**: хост
-   запускає сервер не з вашого терміналу. Шляхи мають бути абсолютними або
-   обчисленими від файлу сервера.
+```bash
+npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/list
+```

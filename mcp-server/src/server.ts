@@ -89,13 +89,14 @@ server.registerTool(
     }),
   },
   async ({ sku }) => {
-    const product = findBySku(loadCatalog(), sku);
+    const catalog = loadCatalog();
+    const product = findBySku(catalog, sku);
     if (!product) {
       return {
         content: [{ type: "text", text: `No product found for SKU "${sku}".` }],
       };
     }
-    const needsReorder = product.stock <= product.reorderLevel;
+    const needsReorder = lowStock(catalog).some((p) => p.sku === product.sku);
     return {
       content: [
         {
