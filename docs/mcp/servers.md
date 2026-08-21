@@ -67,6 +67,27 @@
 
 ---
 
+## Сервер 3 — catalog
+
+Ключ у `.cursor/mcp.json`: `catalog`. У хості: `project-0-2026-udc-06-mcp-hw-catalog`. Ім’я процесу: `catalog-server` (`mcp-server/src/server.ts`).
+
+| | |
+|---|---|
+| **Навіщо** | Тонкий read-only адаптер над засіяним каталогом: reorder-список, перевірка SKU, пошук і знімок вартості запасів. Логіка імпортується з `app/dist`, не дублюється в сервері. |
+| **Транспорт** | stdio (`type: stdio`) |
+| **Як запускається** | `node ${workspaceFolder}/mcp-server/dist/server.js` — як у `.cursor/mcp.json`, без `npx` і без `cmd /c` |
+| **Область доступу (scope)** | Лише читання `app/data/catalog.json` через `loadCatalog()`. Немає tools на запис, видалення чи мережу. Це не filesystem-скоуп: агент не отримує довільний доступ до диску. |
+| **Секрети** | немає (у конфігу немає `env` і `${ENV_VAR}`) |
+| **Версія** | локальний зібраний `dist/server.js`; SDK у `mcp-server/package.json` — `@modelcontextprotocol/server` |
+
+**Які tools він дав агенту:** `search_inventory`, `check_stock`, `low_stock`.
+
+**Resource:** `inventory://catalog` — кількість товарів, категорії, `inventoryValue`.
+
+**Перевірка, що працює:** хост статус `ready`. Викликано `low_stock` (9 SKU, як ground truth Task D) і `resources/read` на `inventory://catalog` (`inventoryValue: 46152`).
+
+---
+
 ## Що НЕ підключали і чому
 
 - **git** і **fetch** (`uvx`) — потрібні Python + `uv`. На цій машині для домашки їх не ставили; walkthrough прямо каже брати filesystem + memory.
