@@ -10,8 +10,8 @@
 шляхом і cwd, з яких сервер стартує хост:
 
 ```bash
-npx -y @modelcontextprotocol/inspector --cli node ./mcp-server/dist/server.js --method tools/list
-npx -y @modelcontextprotocol/inspector --cli node ./mcp-server/dist/server.js \
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server.js --method tools/list
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server.js \
   --method tools/call --tool-name check_stock --tool-arg sku=KB-1001
 ```
 

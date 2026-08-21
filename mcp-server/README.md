@@ -88,7 +88,7 @@ npm run probe
 `./mcp-server/dist/server.js`, а не `./dist/server.js`:
 
 ```bash
-npx @modelcontextprotocol/inspector --cli node ./mcp-server/dist/server.js --method tools/list
+npx @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server.js --method tools/list
 ```
 
 Очікуваних чисел тут навмисно немає: `npm run check` рахує ground truth з
