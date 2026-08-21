@@ -2,32 +2,26 @@
   "mcpServers": {
     "filesystem": {
       "type": "stdio",
-      "command": "cmd",
+      "command": "npx",
       "args": [
-        "/c",
-        "npx",
         "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "D:\\Development\\Projects\\Javascript\\2026-udc-06-mcp-hw\\app\\data"
+        "@modelcontextprotocol/server-filesystem@2026.7.10",
+        "${workspaceFolder}/app/data"
       ]
     },
     "memory": {
       "type": "stdio",
-      "command": "cmd",
+      "command": "npx",
       "args": [
-        "/c",
-        "npx",
         "-y",
-        "@modelcontextprotocol/server-memory"
+        "@modelcontextprotocol/server-memory@2026.7.4"
       ]
     },
     "catalog": {
       "type": "stdio",
-      "command": "cmd",
+      "command": "node",
       "args": [
-        "/c",
-        "node",
-        "D:\\Development\\Projects\\Javascript\\2026-udc-06-mcp-hw\\mcp-server\\dist\\server.js"
+        "${workspaceFolder}/mcp-server/dist/server.js"
       ]
     }
   }

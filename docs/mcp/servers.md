@@ -11,10 +11,10 @@
 |---|---|
 | **Навіщо** | Дати агенту контрольований доступ до засіяного каталогу товарів (`catalog.json`), без права читати решту репозиторію. |
 | **Транспорт** | stdio |
-| **Як запускається** | `cmd /c npx -y @modelcontextprotocol/server-filesystem` + абсолютний шлях до дозволеного каталогу (обгортка `cmd /c` — бо хост Windows, `npx` лежить у `Program Files` з пробілом). |
-| **Область доступу (scope)** | Лише `D:\Development\Projects\Javascript\2026-udc-06-mcp-hw\app\data`. Цього достатньо: єдиний файл даних, який агенту варто бачити через цей сервер, — `catalog.json`. Не home, не диск, не корінь репо. |
+| **Як запускається** | `npx -y @modelcontextprotocol/server-filesystem@2026.7.10` + `${workspaceFolder}/app/data` |
+| **Область доступу (scope)** | Лише `app/data` відносно кореня воркспейсу (`${workspaceFolder}/app/data`). Цього достатньо: єдиний файл даних, який агенту варто бачити через цей сервер, — `catalog.json`. Не home, не диск, не корінь репо. |
 | **Секрети** | немає |
-| **Версія** | плаваюча (`npx -y` без pin). Для домашки без токена це прийнятно; мінус — завтра `npx` може підтягнути інший реліз. |
+| **Версія** | зафіксована: `@2026.7.10` (не плаваючий `@latest`). |
 
 **Які tools він дав агенту:** `read_text_file`, `read_file`, `read_multiple_files`, `read_media_file`, `write_file`, `edit_file`, `create_directory`, `list_directory`, `list_directory_with_sizes`, `directory_tree`, `move_file`, `search_files`, `get_file_info`, `list_allowed_directories`.
 
@@ -30,10 +30,10 @@
 |---|---|
 | **Навіщо** | Локальна «пам’ять» між чатами (граф сутностей), щоб агент міг зберігати факти про цей проєкт без зовнішнього API. |
 | **Транспорт** | stdio |
-| **Як запускається** | `cmd /c npx -y @modelcontextprotocol/server-memory` |
+| **Як запускається** | `npx -y @modelcontextprotocol/server-memory@2026.7.4` |
 | **Область доступу (scope)** | Немає доступу до файлів репозиторію. Сервер тримає власний knowledge graph (типово локальний `memory.jsonl` у каталозі пакета). У репо нічого не пише. |
 | **Секрети** | немає |
-| **Версія** | плаваюча (`npx -y` без pin), з тієї ж причини, що й filesystem. |
+| **Версія** | зафіксована: `@2026.7.4`. |
 
 **Які tools він дав агенту:** `create_entities`, `create_relations`, `add_observations`, `delete_entities`, `delete_observations`, `delete_relations`, `read_graph`, `search_nodes`, `open_nodes`.
 
