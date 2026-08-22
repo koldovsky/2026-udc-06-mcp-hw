@@ -6,16 +6,16 @@
 
 **Що робили:** Inspector проти власного `catalog` (`mcp-server/dist/server.js`), CLI-режим з walkthrough. Хост Cursor для цього не потрібен — Inspector сам піднімає stdio-клієнт, викликає метод і виходить.
 
-Робоча тека: `mcp-server/`. Node на машині: `v20.13.1` (Inspector 2.2.0 попереджає `engines: >=22.19.0`; CLI все одно відпрацював).
+Робоча тека: `mcp-server/`. Node на машині: `v22.23.2` (задовольняє `engines: >=22.19.0` у `@modelcontextprotocol/inspector@2.2.0`). Усі виклики нижче з піном `@2.2.0`.
 
 ```
-npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method initialize
-npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/list
-npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method resources/list
-npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name low_stock --tool-args-json "{}"
-npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name check_stock --tool-arg sku=ZZ-9999
-npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name check_stock
-npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method resources/read --uri inventory://catalog
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method initialize
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method tools/list
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method resources/list
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method tools/call --tool-name low_stock --tool-args-json "{}"
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method tools/call --tool-name check_stock --tool-arg sku=ZZ-9999
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method tools/call --tool-name check_stock
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method resources/read --uri inventory://catalog
 ```
 
 **Що побачили:**
@@ -28,7 +28,7 @@ npx --yes @modelcontextprotocol/inspector --cli node ./dist/server.js --method r
 - `resources/read` — `products: 24`, `inventoryValue: 46152`.
 - `check_stock` без `sku` — SDK/Inspector повернули `isError: true`: `Invalid arguments for tool check_stock: sku: Invalid input: expected string, received undefined`. Exit code 5. Це валідація схеми, не необроблений exception.
 
-**Що знайшли й полагодили завдяки цьому:** зламаного tool не виявилось: невідомий SKU уже оброблявся, `low_stock` і resource збігались із Task D. Inspector показав те, чого чат не показує як JSON-RPC: обов’язковість `sku` реально режеться схемою (`isError`), а не «тихим» порожнім рядком. Код через це не міняв — міняти було нічого. Окремо зафіксував: GUI Inspector/Vite хочуть новіший Node, ніж 20.13.1; для домашки достатньо `--cli`.
+**Що знайшли й полагодили завдяки цьому:** зламаного tool не виявилось: невідомий SKU уже оброблявся, `low_stock` і resource збігались із Task D. Inspector показав те, чого чат не показує як JSON-RPC: обов’язковість `sku` реально режеться схемою (`isError`), а не «тихим» порожнім рядком. Код через це не міняв — міняти було нічого. GUI Inspector/Vite теж вимагають Node ≥22.19.0; для домашки достатньо `--cli`.
 
 **Скріншот/лог (опційно):** уривок `tools/list` + виклик без `sku`:
 
