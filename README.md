@@ -20,7 +20,7 @@ npm run verify    # тести app/ + перевірка, що MCP-сервер 
 | Команда | Що робить |
 |---|---|
 | `npm run setup` | `npm install` і `npm run build` у `app/` та `mcp-server/`. У корені встановлювати нічого не треба: `filesystem`-сервер тягне `npx` за пінованою версією |
-| `npm test` | Тести домену (має бути 8 зелених) |
+| `npm test` | Тести домену (має бути 9 зелених) |
 | `npm run check` | Говорить з `mcp-server/` по stdio так само, як хост, і звіряє відповіді з ground truth |
 | `npm run probe` | Те саме, але друкує сирі кадри JSON-RPC. Працює в будь-якій оболонці |
 | `npm run test:proxy` | 13 спроб обходу фільтра `scripts/fs-proxy.mjs`: traversal, симлінки, короткі імена, device-шляхи |

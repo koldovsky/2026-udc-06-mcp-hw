@@ -17,7 +17,7 @@ Baseline guidance for an Agentic IDE working in **this homework repo**.
   - `app/data/catalog.json` — 24 synthetic products. **Do not edit** — Task D
     compares against these numbers.
   - `npm run setup` from the repo root installs and builds both packages;
-    `npm test` is green (8 tests), and `app/dist/` is what `mcp-server/` imports.
+    `npm test` is green (9 tests), and `app/dist/` is what `mcp-server/` imports.
 - `mcp-server/` — the custom MCP server (Task B, built): 4 read-only tools and
   1 resource over this domain, importing `app/dist` rather than reimplementing
   it. `npm run check` launches it over stdio the way the host does and compares

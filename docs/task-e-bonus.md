@@ -129,7 +129,7 @@ Argument handling
 2 problem(s). See mcp-server/README.md.
 ```
 
-Після відновлення `npm run verify` зелений: 8 тестів `app`, 11 перевірок
+Після відновлення `npm run verify` зелений: 9 тестів `app`, 11 перевірок
 `check`, 13 перевірок проксі.
 
 ## Висновок
