@@ -14,7 +14,17 @@ npm start
 
 `npm start` запускає `node ./dist/server.js` і чекає JSON-RPC на stdin — це нормально. У Cursor той самий файл стартує з `.cursor/mcp.json` (ключ `catalog`): `node ${workspaceFolder}/mcp-server/dist/server.js`.
 
-На PowerShell 5 замість `&&` ставте `;`.
+На PowerShell 5 немає `&&`, а `;` **не** зупиняється після помилки. Після кожного `npm` перевіряйте `$LASTEXITCODE`, інакше `npm start` може піти після зламаної збірки:
+
+```powershell
+cd app
+npm install; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+npm run build; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+cd ../mcp-server
+npm install; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+npm run build; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+npm start
+```
 
 ## Розкладка
 
