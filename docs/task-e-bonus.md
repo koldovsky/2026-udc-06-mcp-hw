@@ -10,13 +10,30 @@
 шляхом і cwd, з яких сервер стартує хост:
 
 ```bash
-npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server.js --method tools/list
-npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server.js \
-  --method tools/call --tool-name check_stock --tool-arg sku=KB-1001
+INSPECT="npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server.js"
+
+$INSPECT --method tools/list                                                                    # 1
+$INSPECT --method resources/list                                                                # 2
+$INSPECT --method resources/read --uri "inventory://catalog"                                    # 3
+$INSPECT --method tools/call --tool-name check_stock --tool-arg sku=KB-1001                     # 4
+$INSPECT --method tools/call --tool-name check_stock --tool-arg sku=ZZ-9999                     # 5
+$INSPECT --method tools/call --tool-name check_stock --tool-arg "sku=Mechanical Keyboard"       # 6
+$INSPECT --method tools/call --tool-name search_inventory                                       # 7
+$INSPECT --method tools/call --tool-name check_stock --tool-arg sku=KB-1001 --tool-arg bogus=1  # 8
 ```
 
-Разом 8 сценаріїв: `tools/list`, `resources/list`, `resources/read`, happy path,
-невідомий SKU, назва товару замість SKU, відсутній аргумент, зайвий аргумент.
+Разом 8 сценаріїв. Що вони віддають **зараз**, після фіксів D-1 і D-2:
+
+| # | Сценарій | Результат |
+|---|---|---|
+| 1 | `tools/list` | 4 tools, усі з `readOnlyHint: true` |
+| 2 | `resources/list` | один — `inventory://catalog` |
+| 3 | `resources/read` | `application/json`, усі 24 товари |
+| 4 | happy path | `KB-1001 … OK — stock 42, reorder level 15` |
+| 5 | невідомий SKU | `found: false` + підказка піти в `search_inventory` |
+| 6 | назва товару замість SKU | `Input validation error` від `pattern` — **до D-2** був той самий `found: false`, що й у №5 |
+| 7 | відсутній аргумент | усі 24 товари — **до D-1** був `Input validation error` |
+| 8 | зайвий аргумент | зайве поле проігноровано, відповідь як у №4 |
 
 > **Чому це мало сенс.** Сервер уже був зелений на `npm run check` і вже
 > відпрацював у Task D. Але обидві перевірки викликали лише tools **без
@@ -27,13 +44,17 @@ npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server
 ## Що побачили
 
 Inspector друкує **згенеровану JSON Schema**, а не zod-код — тобто рівно те, що
-бачить модель:
+бачить модель. Схема **до** фіксів D-1 і D-2:
 
 | Tool | `properties` | `required` | Anno |
 |---|---|---|---|
 | `search_inventory` | `query: string` | **`["query"]`** | `readOnlyHint: true` |
 | `check_stock` | `sku: string` | `["sku"]` | `readOnlyHint: true` |
 | `low_stock` / `inventory_summary` | `{}` | — | `readOnlyHint: true` |
+
+Після фіксів (поточний стан `mcp-server/src/server.ts`): у `search_inventory`
+`required` зник, зʼявився `"default": ""`; у `check_stock` `sku` лишився
+обовʼязковим, але отримав `pattern` під формат `XX-9999`. Решта — без змін.
 
 `resources/list` → `inventory://catalog`, `resources/read` віддав усі 24 товари.
 Реальний виклик, `check_stock {"sku":"KB-1001"}`:
