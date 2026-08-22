@@ -45,5 +45,23 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Servers this project expects to have connected (registered in the root
+`.mcp.json`, approved and allow/deny-listed in `.claude/settings.json`;
+full write-up in `docs/mcp/servers.md`, threat model in `docs/mcp/SECURITY.md`):
+
+| Server | Kind | What it is for here | Scope |
+|---|---|---|---|
+| `catalog` | own, `mcp-server/` | Read-only domain access over this library: `search_inventory`, `check_stock`, `low_stock`; resources `inventory://catalog`, `inventory://catalog/products`, `inventory://category/{category}`. Imports `dist/index.js` — **never** reimplements `src/catalog.ts`. | `data/catalog.json` only |
+| `filesystem` | public, `@modelcontextprotocol/server-filesystem@2026.7.10` | Declared file reads of the seeded data (`list_directory`, `read_text_file`, …). Write tools are deny-listed. | configured `app/data`; effective in Claude Code = repo root via roots |
+| `memory` | public, `@modelcontextprotocol/server-memory@2026.7.4` | Cross-session notes (e.g. SKUs under review). Only the three read tools are allow-listed; writes prompt. | one JSONL file outside the repo (`${MCP_MEMORY_FILE_PATH}` to override) |
+
+Rules for agents working in `app/`:
+
+- Prefer the `catalog` tools for any "stock / reorder / value" question — they
+  run the tested functions in this package. Do not recompute totals by hand.
+- Rebuild (`npm run build`) after changing `src/` — the `catalog` server
+  imports `dist/`, not `src/`, and will serve stale results otherwise.
+- Never add a tool to `mcp-server/` that writes to `data/` or reaches the
+  network; the server is read-only by design.
