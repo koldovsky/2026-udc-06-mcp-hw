@@ -11,12 +11,12 @@
 |---|---|
 | **Навіщо** | Дати агенту контрольований доступ до засіяного каталогу товарів (`catalog.json`), без права читати решту репозиторію. |
 | **Транспорт** | stdio |
-| **Як запускається** | `npx -y @modelcontextprotocol/server-filesystem@2026.7.10` + `${workspaceFolder}/app/data` |
-| **Область доступу (scope)** | Лише `app/data` відносно кореня воркспейсу (`${workspaceFolder}/app/data`). Цього достатньо: єдиний файл даних, який агенту варто бачити через цей сервер, — `catalog.json`. Не home, не диск, не корінь репо. |
+| **Як запускається** | `npx -y @modelcontextprotocol/server-filesystem@2026.7.10` + `${workspaceFolder}/app/data`; `disabledTools`: `write_file`, `edit_file`, `create_directory`, `move_file` |
+| **Область доступу (scope)** | Лише читання `app/data` відносно кореня воркспейсу (`${workspaceFolder}/app/data`). Цього достатньо: єдиний файл даних, який агенту варто бачити через цей сервер, — `catalog.json`. Не home, не диск, не корінь репо. Запис/редагування/mkdir/move вимкнені в конфігу. |
 | **Секрети** | немає |
 | **Версія** | зафіксована: `@2026.7.10` (не плаваючий `@latest`). |
 
-**Які tools він дав агенту:** `read_text_file`, `read_file`, `read_multiple_files`, `read_media_file`, `write_file`, `edit_file`, `create_directory`, `list_directory`, `list_directory_with_sizes`, `directory_tree`, `move_file`, `search_files`, `get_file_info`, `list_allowed_directories`.
+**Які tools він дав агенту:** `read_text_file`, `read_file`, `read_multiple_files`, `read_media_file`, `list_directory`, `list_directory_with_sizes`, `directory_tree`, `search_files`, `get_file_info`, `list_allowed_directories`. Запис вимкнено в `.cursor/mcp.json` (`disabledTools`: `write_file`, `edit_file`, `create_directory`, `move_file`).
 
 **Перевірка, що працює:** викликано `list_allowed_directories`. Відповідь: `D:\Development\Projects\Javascript\2026-udc-06-mcp-hw\app\data` — тобто діє аргумент з конфігу, а не корінь воркспейсу.
 
@@ -96,4 +96,4 @@
 
 ## Область доступу — головне
 
-Filesystem бачить **лише** `app\data`, не весь диск і не весь репозиторій. У цьому каталозі лежить синтетичний `catalog.json` — того досить, щоб агент міг прочитати дані каталогу. Реальний скоуп підтверджено tool-ом `list_allowed_directories`, не лише рядком у JSON.
+Filesystem бачить **лише** `app\data`, не весь диск і не весь репозиторій, і лише на читання (`disabledTools` на write/edit/mkdir/move). У цьому каталозі лежить синтетичний `catalog.json` — того досить, щоб агент міг прочитати дані каталогу. Реальний скоуп підтверджено tool-ом `list_allowed_directories`, не лише рядком у JSON.

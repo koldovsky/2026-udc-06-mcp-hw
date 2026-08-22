@@ -7,6 +7,12 @@
         "-y",
         "@modelcontextprotocol/server-filesystem@2026.7.10",
         "${workspaceFolder}/app/data"
+      ],
+      "disabledTools": [
+        "write_file",
+        "edit_file",
+        "create_directory",
+        "move_file"
       ]
     },
     "memory": {

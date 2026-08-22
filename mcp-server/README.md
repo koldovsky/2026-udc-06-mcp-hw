@@ -30,6 +30,8 @@ mcp-server/
 
 ## Перевірка без хоста
 
+Потрібен Node.js ≥22.19.0 (`engines` у `@modelcontextprotocol/inspector@2.2.0`).
+
 ```bash
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/list
+npx --yes @modelcontextprotocol/inspector@2.2.0 --cli node ./dist/server.js --method tools/list
 ```
