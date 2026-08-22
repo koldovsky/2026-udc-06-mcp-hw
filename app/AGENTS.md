@@ -45,5 +45,49 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+This project expects two public MCP servers to be connected. They are declared
+in `.mcp.json` at the repo root; their permissions are scoped in
+`.claude/settings.json`. Full write-up: [`docs/mcp/servers.md`](../docs/mcp/servers.md).
+
+| Server | What it is for here | Scope |
+|---|---|---|
+| `filesystem` | Reading `data/catalog.json` — the Task D ground truth — through an MCP channel rather than the host's own file tools. | Wrapped in [`scripts/fs-proxy.mjs`](../scripts/fs-proxy.mjs): an allowlist of **exactly one file**, `data/catalog.json`. The launch argument `./app/data` is *not* what holds the line — this host answers `roots` with the repo root — so the proxy withholds that capability and checks every path itself. [`SECURITY.md`](../docs/mcp/SECURITY.md) T-2. |
+| `memory` | Carrying domain facts across sessions: A/B run results, scope decisions, ground-truth numbers. | Its own knowledge graph at `.mcp-memory/memory.jsonl` (`MEMORY_FILE_PATH`). No filesystem access at all. |
+| `catalog` | **Ours** (`mcp-server/`, Task B) — 4 read-only tools + 1 resource over this library. | No filesystem scope of its own: it imports `dist/` and reads `data/catalog.json` through `loadCatalog()`. [`mcp-server/README.md`](../mcp-server/README.md). |
+
+### Rules that follow from this
+
+- **The `filesystem` server is read-only by host policy, not by its own
+  design.** The `deny` list in `.claude/settings.json` is the only thing
+  stopping it from writing: widen that allow-list and you have handed an MCP
+  server write access to `data/catalog.json`, which the guardrails above forbid
+  editing. Why it is not read-only on its own:
+  [`SECURITY.md`](../docs/mcp/SECURITY.md) T-3.
+- **Keep the `filesystem` launch argument at `app/data` — and do not trust
+  it.** The server takes directories only (a file path is rejected at startup),
+  so this is the narrowest argument available, and it is the correct
+  declaration of intent — other hosts do honour it. In *this* host it is
+  `scripts/fs-proxy.mjs` that actually holds the line: it narrows the boundary
+  from a directory to the single file `data/catalog.json`, and refuses
+  everything else before the request reaches the server. The host `deny` list
+  is a separate layer beside it, matched on **tool name, not path**.
+- **Pin server versions.** Both public servers are pinned in `.mcp.json` itself —
+  `memory` at `@2026.7.4`, `filesystem` at `@2026.7.10` — so an upgrade is a
+  visible edit, not a side effect of restarting the host. `npx -y ...@latest`
+  would run unreviewed upstream code with filesystem access. What a tag pin does
+  not cover: T-4 in [`SECURITY.md`](../docs/mcp/SECURITY.md).
+- **Secrets stay as `${ENV_VAR}` — but that alone guarantees nothing.** No
+  token is needed here; `MEMORY_FILE_PATH` is `${MCP_MEMORY_FILE}` because the
+  path is machine-specific. Put the value in `.claude/settings.local.json` →
+  `env.MCP_MEMORY_FILE` — Claude Code does **not** read `.env`, and an
+  unexpanded placeholder fails *silently*, not loudly:
+  [`SECURITY.md`](../docs/mcp/SECURITY.md) T-1.
+- **`mcp-server/` imports the catalog functions from the built package**
+  (`src/index.ts` → `dist/`) rather than reading `data/catalog.json` through
+  the `filesystem` server — reading it that way would inherit the scope
+  problem above and couple the server to the host's `roots` behaviour. Keep it
+  that way when extending it, and **run `npm run build` here first**: the
+  server imports `dist/`, so a change to `src/` that is not rebuilt is a change
+  the server does not see.

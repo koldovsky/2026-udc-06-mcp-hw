@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "node",
+      "args": [
+        "./scripts/fs-proxy.mjs",
+        "--allow",
+        "./app/data/catalog.json",
+        "--",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.7.10",
+        "./app/data"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory@2026.7.4"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "${MCP_MEMORY_FILE}"
+      }
+    },
+    "catalog": {
+      "command": "node",
+      "args": [
+        "./mcp-server/dist/server.js"
+      ]
+    }
+  }
+}

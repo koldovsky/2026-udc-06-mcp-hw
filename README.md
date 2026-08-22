@@ -13,11 +13,30 @@ gh repo fork koldovsky/2026-udc-06-mcp-hw --clone
 cd 2026-udc-06-mcp-hw
 git checkout -b ws06/<github-username>
 
-cd app && npm install && npm test && npm run build && cd ..
+npm run setup     # встановить і збере обидва пакети: app/ і mcp-server/
+npm run verify    # тести app/ + перевірка, що MCP-сервер відповідає
 ```
 
-`npm test` має бути зеленим (8 тестів), а `npm run build` — створити
-`app/dist/`, з якого ваш MCP-сервер імпортуватиме доменні функції.
+| Команда | Що робить |
+|---|---|
+| `npm run setup` | `npm install` і `npm run build` у `app/` та `mcp-server/`. У корені встановлювати нічого не треба: `filesystem`-сервер тягне `npx` за пінованою версією |
+| `npm test` | Тести домену (має бути 9 зелених) |
+| `npm run check` | Говорить з `mcp-server/` по stdio так само, як хост, і звіряє відповіді з ground truth |
+| `npm run probe` | Те саме, але друкує сирі кадри JSON-RPC. Працює в будь-якій оболонці |
+| `npm run test:proxy` | 13 спроб обходу фільтра `scripts/fs-proxy.mjs`: traversal, симлінки, короткі імена, device-шляхи |
+| `npm run verify` | `test` + `check` + `test:proxy` разом |
+
+`.mcp.json` хост читає **лише на старті**: після правки конфігу сервери в
+поточній сесії лишаються старими, тож зміну треба перевіряти в новій. Ознака,
+що проксі активний, — `list_allowed_directories()` повертає `…\app\data`, а не
+корінь репо, і `.env` віддає `Refused by fs-proxy:`.
+
+Обидва `dist/` і всі `node_modules/` гітігноряться, тому **після свіжого клону
+`npm run setup` обов'язковий**: без нього `.mcp.json` вказує на неіснуючий
+`mcp-server/dist/server.js` і хост не запустить власний сервер. `filesystem`
+стартує й без цього — `npx` тягне пакет за пінованою версією сам, лише на
+холодному кеші потрібна мережа. `npm run check` ловить саме випадок незібраного
+сервера і каже, яку команду запустити.
 
 ## Що вже є в репо
 
@@ -41,6 +60,7 @@ cd app && npm install && npm test && npm run build && cd ..
 - `docs/mcp/SECURITY.md` — threat model (Task C)
 - `docs/ab-validation.md` — A/B-порівняння (Task D)
 - `docs/task-e-bonus.md` — бонус, один шлях (Task E)
+- `package.json` + `scripts/check-mcp.mjs` — кореневі скрипти setup/verify
 
 ## Головне правило безпеки
 
