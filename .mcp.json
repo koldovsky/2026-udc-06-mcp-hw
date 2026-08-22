@@ -15,10 +15,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-memory@2026.7.4"
-      ],
-      "env": {
-        "MEMORY_FILE_PATH": "${MCP_MEMORY_FILE_PATH:-}"
-      }
+      ]
     },
     "catalog": {
       "type": "stdio",

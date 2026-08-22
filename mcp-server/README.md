@@ -12,7 +12,7 @@ and `zod` 4.
 
 | Kind | Name / URI | Input | Backed by |
 |---|---|---|---|
-| tool | `search_inventory` | `query: string (≤100)`, `limit?: 1–100 (default 25)` | `searchProducts` |
+| tool | `search_inventory` | `query?: string (≤100, default "" = everything)`, `limit?: 1–100 (default 25)` | `searchProducts` |
 | tool | `check_stock` | `sku: string` matching `^[A-Za-z]{2}-\d{4}$` | `findBySku` + `lowStock` (for `needsReorder`) |
 | tool | `low_stock` | — | `lowStock` + `inventoryValue` |
 | resource | `inventory://catalog` | — | `categories`, `inventoryValue`, `lowStock` (summary JSON) |
@@ -26,8 +26,19 @@ Every tool returns both a human-readable `text` block and a typed
 Error behaviour:
 
 - malformed input → SDK schema error (`isError: true`, handler never runs);
-- well-formed but unknown SKU → `isError: true` **with** `structuredContent: {found: false, sku}`;
-- unknown category URI → JSON-RPC `ResourceNotFoundError` listing the known categories.
+- well-formed but unknown SKU → `isError: true` **with** `structuredContent: {found: false, sku}`.
+  `isError` is deliberate: the caller asked about a specific SKU and the
+  premise was wrong, so the model should re-check the SKU (the text points it
+  to `search_inventory`) rather than carry on as if stock were zero; the
+  `structuredContent` is still attached so a client can branch on `found`
+  without parsing text;
+- unknown category URI → JSON-RPC `-32602` (`ResourceNotFoundError`) with the
+  known categories in the message and the offending `uri` in `data`;
+- `app/data/catalog.json` unreadable → the tool returns a sanitized "run
+  `npm run build`, check the data file" message (the raw error, including the
+  absolute path, goes to stderr only);
+- `app/dist` missing → the process exits 1 at startup with a three-line hint on
+  stderr instead of a bare `ERR_MODULE_NOT_FOUND` stack.
 
 ## Layout
 
@@ -35,7 +46,7 @@ Error behaviour:
 mcp-server/
 ├── src/server.ts       ← the whole server
 ├── dist/server.js      ← build output (gitignored)
-├── scripts/smoke.mjs   ← stdio smoke test, no host needed
+├── scripts/smoke.mjs   ← test harness (spawns the server over stdio); NOT part of the server surface
 ├── package.json
 └── tsconfig.json
 ```

@@ -55,7 +55,7 @@ full write-up in `docs/mcp/servers.md`, threat model in `docs/mcp/SECURITY.md`):
 |---|---|---|---|
 | `catalog` | own, `mcp-server/` | Read-only domain access over this library: `search_inventory`, `check_stock`, `low_stock`; resources `inventory://catalog`, `inventory://catalog/products`, `inventory://category/{category}`. Imports `dist/index.js` — **never** reimplements `src/catalog.ts`. | `data/catalog.json` only |
 | `filesystem` | public, `@modelcontextprotocol/server-filesystem@2026.7.10` | Declared file reads of the seeded data (`list_directory`, `read_text_file`, …). Write tools are deny-listed. | configured `app/data`; effective in Claude Code = repo root via roots |
-| `memory` | public, `@modelcontextprotocol/server-memory@2026.7.4` | Cross-session notes (e.g. SKUs under review). Only the three read tools are allow-listed; writes prompt. | one JSONL file outside the repo (`${MCP_MEMORY_FILE_PATH}` to override) |
+| `memory` | public, `@modelcontextprotocol/server-memory@2026.7.4` | Cross-session notes (e.g. SKUs under review). Only the three read tools are allow-listed; writes prompt. | one JSONL file outside the repo (`MEMORY_FILE_PATH` env var, absolute, to override) |
 
 Rules for agents working in `app/`:
 

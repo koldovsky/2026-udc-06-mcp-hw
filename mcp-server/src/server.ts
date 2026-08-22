@@ -21,18 +21,35 @@ import {
 } from "@modelcontextprotocol/server";
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
+import { createRequire } from "node:module";
 
 // `src/` and `dist/` sit at the same depth on purpose: tsc does NOT rewrite
 // relative specifiers, so this path must be valid from both directories.
-import {
-  loadCatalog,
-  searchProducts,
-  findBySku,
-  lowStock,
-  inventoryValue,
-  categories,
-  type Product,
-} from "../../app/dist/index.js";
+//
+// The import is dynamic and guarded: a static import of a missing `app/dist`
+// dies at module-resolution time with a bare ERR_MODULE_NOT_FOUND stack, which
+// from inside a host looks identical to "the server is broken". Failing with
+// an actionable message on stderr is the difference between a 10-second fix
+// and a debugging session.
+type Domain = typeof import("../../app/dist/index.js");
+import type { Product } from "../../app/dist/index.js";
+
+let domain: Domain;
+try {
+  domain = await import("../../app/dist/index.js");
+} catch (err) {
+  console.error(
+    "[catalog-server] cannot load the catalog domain from ../../app/dist/index.js.\n" +
+      "  Run:  cd app && npm install && npm run build\n" +
+      `  (original error: ${(err as Error).message})`,
+  );
+  process.exit(1);
+}
+const { loadCatalog, searchProducts, findBySku, lowStock, inventoryValue, categories } = domain;
+
+const { version: packageVersion } = createRequire(import.meta.url)("../package.json") as {
+  version: string;
+};
 
 // ── Shared schemas / formatting ───────────────────────────────────────────
 
@@ -68,12 +85,26 @@ const needsReorder = (data: Product[], p: Product): boolean =>
  * and this way a long-lived host session always sees the current data instead
  * of a snapshot taken when the server process was spawned.
  */
-const catalog = (): Product[] => loadCatalog();
+const catalog = (): Product[] => {
+  try {
+    return loadCatalog();
+  } catch (err) {
+    // Full detail for the operator on stderr; only a sanitized, actionable
+    // message to the client — the raw ENOENT text would leak the absolute
+    // path of this machine into the model's context.
+    console.error("[catalog-server] loadCatalog failed:", err);
+    throw new Error(
+      "Catalog data is not readable. Run `cd app && npm install && npm run build` " +
+        "and check that app/data/catalog.json exists and is valid JSON. " +
+        `(${(err as Error).name})`,
+    );
+  }
+};
 
 // ── Server ────────────────────────────────────────────────────────────────
 
 const server = new McpServer(
-  { name: "catalog-server", version: "1.0.0" },
+  { name: "catalog-server", version: packageVersion },
   {
     instructions:
       "Read-only access to the product catalog (24 SKUs). Use `low_stock` for " +
@@ -99,6 +130,7 @@ server.registerTool(
       query: z
         .string()
         .max(100)
+        .default("")
         .describe(
           "Free-text match on product name, SKU, or category (e.g. 'mouse', " +
             "'KB-1001', 'audio'). Empty string lists every product.",
@@ -334,7 +366,8 @@ server.registerResource(
   },
   async (uri, { category }) => {
     const name = String(category).toLowerCase();
-    const known = categories(catalog());
+    const data = catalog();
+    const known = categories(data);
     if (!known.includes(name)) {
       // Found via MCP Inspector (Task E): an unknown category used to return
       // `{count: 0, products: []}` — indistinguishable from an empty category.
@@ -344,7 +377,7 @@ server.registerResource(
         `Unknown category "${name}". Known categories: ${known.join(", ")}.`,
       );
     }
-    const products = searchProducts(catalog(), name).filter(
+    const products = searchProducts(data, name).filter(
       (p) => p.category.toLowerCase() === name,
     );
     return {
@@ -362,5 +395,10 @@ server.registerResource(
 // ── Connect ───────────────────────────────────────────────────────────────
 
 const transport = new StdioServerTransport();
-await server.connect(transport);
+try {
+  await server.connect(transport);
+} catch (err) {
+  console.error("[catalog-server] failed to start:", err);
+  process.exit(1);
+}
 console.error("[catalog-server] ready on stdio (read-only, 3 tools, 2 resources + 1 template)");

@@ -1,5 +1,12 @@
 # Task E (bonus) — Path 2: debugging the server with MCP Inspector
 
+> **Коротко (UA):** прогнав свій сервер через `@modelcontextprotocol/inspector`
+> у `--cli` режимі — щасливий шлях і навмисно погані входи. Inspector показав
+> реальні схеми/анотації на дроті, як SDK відхиляє невалідні аргументи ще до
+> мого коду, і **знайшов дефект**: невідома категорія повертала порожній список
+> замість помилки «не знайдено». Виправлено через `ResourceNotFoundError`
+> (JSON-RPC `-32602` з `uri` у `data`), покрито smoke-тестом.
+
 **What I did:** ran the Inspector in `--cli` mode against the built server
 (`@modelcontextprotocol/inspector@2.3.0`, Node 24.16) — first the happy path,
 then deliberately bad inputs — and compared what it showed with what the
@@ -95,7 +102,18 @@ $ npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --met
 {"error":{"code":"error","message":"Unknown category \"toys\". Known categories: accessories, audio, cables, displays, furniture, peripherals, storage."}}
 
 $ npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method resources/read --uri inventory://category/cables
-{ "contents": [ { "uri": "inventory://category/cables", "mimeType": "application/json", "text": "{ \"category\": \"cables\", \"count\": 4, … } ] }
+{ "contents": [ { "uri": "inventory://category/cables", "mimeType": "application/json", "text": "{\n  \"category\": \"cables\",\n  \"count\": 3,\n  \"products\": [ …CB-7001, CB-7002, CB-7003… ]\n}" } ] }
+```
+
+The Inspector CLI renders errors as `{"error":{"code":"error", …}}`, which
+hides the actual wire-level frame. Sending the same request over raw stdio
+shows what a client really receives — `ResourceNotFoundError` in
+`@modelcontextprotocol/server` 2.0.0 maps to JSON-RPC `-32602` (invalid
+params) and carries the offending URI in `data`, which is what lets a client
+branch on it instead of string-matching the message:
+
+```
+{"jsonrpc":"2.0","id":2,"error":{"code":-32602,"message":"Unknown category \"toys\". Known categories: accessories, audio, cables, displays, furniture, peripherals, storage.","data":{"uri":"inventory://category/toys"}}}
 ```
 
 ## Conclusion

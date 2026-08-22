@@ -1,5 +1,12 @@
 # A/B validation of the MCP server (Task D)
 
+> **Коротко (UA):** той самий промпт у трьох свіжих сесіях — з `catalog`-сервером
+> (A), без нього (B), без нього і без shell (B2). **Чесний нуль:** усі три
+> відповіли правильно (9 SKU, 46152). Сервер змінив не правильність, а *шлях*:
+> A — один оголошений read-only tool + ресурс (4 кроки, $0.23); B — агент сам
+> запустив `app/dist` через `Bash` (3 кроки, $0.28); B2 — прочитав 5 файлів і
+> порахував вручну (10 кроків, $1.09). Конфаундери описані окремо.
+
 **Prompt (identical in A and B, verbatim from `materials/ab-question.md`):**
 
 ```
@@ -99,7 +106,7 @@ result was hand-computed and suggested running `app/dist` or the catalog tool
 
 ## Difference table
 
-| Aspect | A (with MCP) | B (without MCP, shell available) | B2 (without MCP, no shell) |
+| Aspect | A (with MCP) | B (without MCP, shell available) | B2 (without MCP, no shell — **two variables changed**, see confounders) |
 |---|---|---|---|
 | Called a tool | yes — `low_stock` + resource `inventory://catalog` | yes — `Bash` × 2 (ran `app/dist` via `node -e`) | yes — `Read` × 5, `Glob`, `Grep` × 2 |
 | SKU list complete | 9/9 | 9/9 | 9/9 |
@@ -110,6 +117,39 @@ result was hand-computed and suggested running `app/dist` or the catalog tool
 | Source of the numbers | tested domain code, through a declared read-only tool | tested domain code, through **arbitrary shell execution** | raw JSON + model arithmetic |
 | Confidence vs. correctness | confident, correct, machine-verified | confident, correct, machine-verified | confident, correct, **self-flagged as hand-computed** |
 | Capability that was actually exercised | `mcp__catalog__low_stock` (`readOnlyHint: true`) | `Bash` (can do anything) | file reads over the whole repo |
+
+## Confounders and what they do to the conclusion
+
+Three things in the transcripts are not controlled for, and they matter for
+how much weight each row of the table can carry:
+
+1. **Run B's agent knew the server existed.** Its first command was
+   `cat AGENTS.md && cat .mcp.json …`, and it then wrote *"the `catalog` MCP
+   server from `.mcp.json` wasn't loaded in this session"*. So condition B is
+   not "an agent that knows nothing about a catalog server"; it is "an agent
+   that has read a config naming the server, has been told by `AGENTS.md`
+   exactly where the tested domain code lives, and has a shell". That is a
+   strong hint toward `node -e "…dist/index.js…"` and plausibly explains why
+   B was so cheap (2 tool calls) rather than reading the JSON by hand. A
+   cleaner B would hide `.mcp.json` and `AGENTS.md` — but then it would no
+   longer be "this repo without the server", which is what the assignment
+   asks to compare.
+2. **B2 changed two variables at once** — the server *and* the shell were
+   removed. Its 4.7× cost is therefore "no MCP and no shell" versus A, not
+   "no MCP" alone. It is a control for *what the model does when it must
+   aggregate itself*, not a second measurement of the server's effect; the
+   table keeps it in the same row set only for readability.
+3. **Permissions were equalised in the server's favour.** In Run A the three
+   `catalog` tools were pre-approved by `.claude/settings.json`, so no
+   permission prompt could have discouraged the call; in B and B2 the
+   built-in tools (`Read`, `Glob`, `Grep`, and `Bash` where allowed) were
+   pre-approved via `--allowedTools` the same way. This removes the dialog as
+   a variable and makes A a fair test of *choice* — but it also means the
+   results say nothing about how a prompt-on-every-call setup would behave.
+
+None of these change the headline (all three runs were correct); they do mean
+the turn/cost differences should be read as indicative, not as a controlled
+benchmark.
 
 ## Conclusion
 

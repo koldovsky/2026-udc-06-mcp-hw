@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// TEST HARNESS — not part of the MCP server surface. It spawns dist/server.js
+// as a child process to drive the JSON-RPC handshake; the server itself never
+// spawns anything, writes anything, or opens a socket.
 /**
  * Smoke test for dist/server.js over raw stdio — no host, no Inspector.
  *
