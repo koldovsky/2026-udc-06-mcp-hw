@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "catalog": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR}/mcp-server/dist/server.js"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2025.8.21",
+        "${CLAUDE_PROJECT_DIR}/app/data"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory@2025.8.21"
+      ]
+    }
+  }
+}
