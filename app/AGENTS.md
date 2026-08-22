@@ -45,5 +45,10 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Project-level config: `.cursor/mcp.json` (Cursor). All three servers are token-free.
+
+- **filesystem** (`@modelcontextprotocol/server-filesystem`) — scoped to `app/data` so the agent can read the seeded `catalog.json` without seeing the rest of the repo. Write, edit, mkdir, and move tools are disabled in `.cursor/mcp.json`.
+- **memory** (`@modelcontextprotocol/server-memory`) — a local knowledge graph for facts that should persist across chats; it does not read or write this package's files.
+- **catalog** (`mcp-server/`) — read-only adapter over this package: search, stock checks, reorder list, and `inventory://catalog`. Started over stdio as `node ${workspaceFolder}/mcp-server/dist/server.js`. It only reads `data/catalog.json` via `loadCatalog()`; no writes, deletes, or network.
