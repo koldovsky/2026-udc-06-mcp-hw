@@ -43,6 +43,15 @@ describe("lowStock", () => {
   it("returns items at or below reorder level, lowest stock first", () => {
     expect(lowStock(sample).map((p) => p.sku)).toEqual(["CC-3", "AA-1"]);
   });
+
+  // The seed has no product sitting exactly on its reorder level, so without
+  // this fixture a `<=` -> `<` regression would pass every other assertion.
+  it("includes an item sitting exactly on its reorder level", () => {
+    const atLevel: Product[] = [
+      { sku: "EQ-1", name: "Edge Case", category: "tools", price: 1, stock: 7, reorderLevel: 7 },
+    ];
+    expect(lowStock(atLevel).map((p) => p.sku)).toEqual(["EQ-1"]);
+  });
 });
 
 describe("categories", () => {

@@ -59,7 +59,7 @@ Inspector друкує **згенеровану JSON Schema**, а не zod-ко�
 Опис: «An empty query returns the entire catalog». Схема: `"required": ["query"]`.
 Виклик без аргументу:
 
-```
+```json
 { "content": [ { "type": "text", "text": "Input validation error: Invalid arguments for tool
   search_inventory: query: Invalid input: expected string, received undefined" } ],
   "isError": true }
@@ -111,7 +111,7 @@ sku: z.string().regex(SKU_SHAPE,
 Харнес пропустив дефекти не випадково — він **структурно не міг** їх побачити.
 Додано три виклики з аргументами (id 6–8) і секцію «Argument handling»:
 
-```
+```text
 Argument handling
   ok    search_inventory {} -> all 24 products
   ok    check_stock rejects a product name and points at search_inventory
@@ -121,7 +121,7 @@ Argument handling
 Третя перевірка стереже зворотний бік D-2 — щоб патерн не став суворішим за
 `findBySku`. Що це тести, а не декорація, перевірено відкотом обох фіксів:
 
-```
+```text
   FAIL  search_inventory {} -> isError, but the description says it lists everything
   FAIL  check_stock with a product name -> accepted; the SKU pattern is not being enforced
   ok    check_stock still accepts ' kb-1001 ' (trimmed, case-insensitive)

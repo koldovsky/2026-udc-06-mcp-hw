@@ -107,7 +107,7 @@ npx @modelcontextprotocol/inspector@2.3.0 --cli node ./mcp-server/dist/server.js
 
 ## Розкладка
 
-```
+```text
 mcp-server/
 ├── src/server.ts   ← єдиний файл сервера
 ├── dist/server.js  ← збірка (gitignored)

@@ -2,7 +2,7 @@
 
 **Промпт (однаковий для A і B):**
 
-```
+```text
 Which products in our catalog need reordering right now, and what is the
 total value of the stock we are currently holding? Give me the SKUs and
 the total as a number.
@@ -14,7 +14,7 @@ the total as a number.
 
 ## Ground truth
 
-```
+```text
 Потребують дозамовлення (stock <= reorderLevel) — 9 з 24 товарів:
 DK-4001, WC-8002, DS-6002, MS-2001, MN-3002, HS-5002, SS-1102, KB-1002, CB-7003
 Загальна вартість запасів, sum(price * stock): 46152

@@ -52,7 +52,7 @@
 
 ### Розбір рядка запуску
 
-```
+```text
 node ./scripts/fs-proxy.mjs --allow ./app/data/catalog.json -- npx -y @modelcontextprotocol/server-filesystem@2026.7.10 ./app/data
      └───── рівень 1 ──────┴───────── його опції ─────────┘    └────────────────────── рівень 2 ───────────────────────┴── його опції ──┘
 ```
@@ -88,7 +88,7 @@ node ./scripts/fs-proxy.mjs --allow ./app/data/catalog.json -- npx -y @modelcont
 
 Сервер приймає лише каталоги:
 
-```
+```text
 $ npx -y @modelcontextprotocol/server-filesystem ".../app/data/catalog.json"
 Warning: C:\...\app\data\catalog.json is not a directory, skipping
 Error: None of the specified directories are accessible
@@ -118,7 +118,6 @@ Error: None of the specified directories are accessible
   "permissions": {
     "allow": [
       "mcp__filesystem__read_text_file",
-      "mcp__filesystem__list_directory",
       "mcp__filesystem__list_allowed_directories"
     ],
     "deny": [
@@ -129,6 +128,7 @@ Error: None of the specified directories are accessible
       "mcp__filesystem__read_file",
       "mcp__filesystem__read_media_file",
       "mcp__filesystem__read_multiple_files",
+      "mcp__filesystem__list_directory",
       "mcp__filesystem__list_directory_with_sizes",
       "mcp__filesystem__directory_tree",
       "mcp__filesystem__search_files",
@@ -141,14 +141,15 @@ Error: None of the specified directories are accessible
 (Наведено лише правила для `filesystem`; у файлі є ще правила для `memory` —
 див. нижче.)
 
-**Чому allow звужено до трьох.** Спершу дозволених було 9 читальних. Але якщо
+**Чому allow звужено до двох.** Спершу дозволених було 9 читальних. Але якщо
 межа — корінь репо, а не `app/data`, то tools-розвідники (`search_files`,
 `directory_tree`, `read_multiple_files`, `get_file_info`) сканують уже все
-дерево. Для Task D треба `read_text_file` і `list_directory`;
-`list_allowed_directories` лишили — він не читає даних, зате дозволяє
-перевірити межу. Решта 11 — **поіменно** в `deny`: «не в allow» означає лише
-запит підтвердження, а не заборону. Серед них `read_media_file`, який повертає
-base64 будь-якого файлу зі scope.
+дерево. Для Task D досить `read_text_file`; `list_allowed_directories` лишили —
+він не читає даних, зате дозволяє перевірити межу. `list_directory` теж пішов у
+`deny`: проксі його все одно не форвардить, тож тримати його в `allow` означало
+б обіцяти tool, якого назовні немає. Решта 12 — **поіменно** в `deny`: «не в
+allow» означає лише запит підтвердження, а не заборону. Серед них
+`read_media_file`, який повертає base64 будь-якого файлу зі scope.
 
 **Чому не можна просто заборонити `.env`.** Правила прав матчаться за **іменем**
 tool'а (вайлдкарди на кшталт `mcp__filesystem__*` є), а не за аргументом —
@@ -170,7 +171,7 @@ tool'а (вайлдкарди на кшталт `mcp__filesystem__*` є), а н�
 
 Власний stdio-клієнт дав рядок, про який попереджає walkthrough:
 
-```
+```text
 Client does not support MCP Roots, using allowed directories set from server args:
 [ 'C:\Users\Admin\IdeaProjects\2026-udc-06-mcp-hw\app\data' ]
 ```
@@ -182,11 +183,11 @@ Client does not support MCP Roots, using allowed directories set from server arg
 Логи MCP пишуться завжди, незалежно від `--debug` (`~/.claude/debug/` існує
 лише при `--debug`):
 
-```
+```text
 %LOCALAPPDATA%\claude-cli-nodejs\Cache\<project-slug>\mcp-logs-filesystem\*.jsonl
 ```
 
-```
+```json
 {"error":"Server stderr: Secure MCP Filesystem Server running on stdio\n"}
 {"debug":"Received ListRoots request from server"}
 ```
@@ -222,7 +223,7 @@ MCP Roots` немає в **жодному** лозі (0 збігів по всь
 **Але перевіряє шлях усе одно сервер** — текст помилки з коду пакета
 (`dist/lib.js:67`), і порядок у лозі це підтверджує:
 
-```
+```json
 {"debug":"Calling MCP tool: read_text_file"}
 {"error":"Access denied - path outside allowed directories: …"}
 ```
@@ -237,7 +238,7 @@ MCP Roots` немає в **жодному** лозі (0 збігів по всь
 бачить клієнта без підтримки roots і робить те, що робив у контрольній пробі
 вище — бере scope з власних args:
 
-```
+```text
 fs-proxy: withheld roots capability; child uses its own args
 Client does not support MCP Roots, using allowed directories set from server args: [ '…\app\data' ]
 ```

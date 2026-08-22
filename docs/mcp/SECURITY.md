@@ -43,7 +43,7 @@
 Сервер бере його як шлях, бачить, що шлях **відносний**, і резолвить від
 власного каталогу пакета. Результат — файл, чиє **ім'я і є плейсхолдером**:
 
-```
+```text
 …/npm-cache/_npx/<hash>/node_modules/@modelcontextprotocol/server-memory/dist/${MCP_MEMORY_FILE}
 ```
 
