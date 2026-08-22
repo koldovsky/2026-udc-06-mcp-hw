@@ -47,3 +47,12 @@ them.
 
 <!-- Task A adds a "## MCPs" section here, documenting the servers this
      project expects to have connected and what each is for. -->
+
+## MCPs
+
+- **filesystem** — read-only access to `app/data` so an agent can inspect the
+  seeded catalog without exposing the rest of the repository.
+- **memory** — project-scoped conversation notes; it has no repository file
+  access and needs no token.
+- **catalog** — the local read-only MCP adapter for searching inventory,
+  checking stock, and reading the catalog summary.
