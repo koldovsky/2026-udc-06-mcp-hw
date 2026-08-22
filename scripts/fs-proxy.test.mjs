@@ -12,6 +12,7 @@
  */
 
 import { spawn, execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -19,10 +20,17 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const catalog = join(root, "app", "data", "catalog.json");
 const dotenv = join(root, ".env");
 
+// The child command comes from .mcp.json rather than a copy of it, so a version
+// bump there cannot leave this test behind on the old one. Its trailing scope
+// argument is dropped: the test hands the child the repo root instead (below).
+const configArgs = JSON.parse(readFileSync(join(root, ".mcp.json"), "utf8"))
+  .mcpServers.filesystem.args;
+const childCommand = configArgs.slice(configArgs.indexOf("--") + 1, -1);
+
 /**
- * 8.3 short form of a DIRECTORY, or null. `.env` is short enough to have no
- * distinct short name, but `2026-udc-06-mcp-hw` does — so the interesting
- * bypass is a short name in a path *component*.
+ * Legacy short form of a DIRECTORY (`PROGRA~1` style), or null. `.env` is short
+ * enough to have no distinct short form, but `2026-udc-06-mcp-hw` does — so the
+ * interesting bypass is a short form in a path *component*.
  */
 function shortDir(dir) {
   if (process.platform !== "win32") return null;
@@ -69,7 +77,7 @@ const cases = [
 const shortRoot = shortDir(root);
 if (shortRoot) {
   cases.push([
-    "8.3 short name in path",
+    "legacy short path",
     "read_text_file",
     { path: join(shortRoot, ".env") },
     "deny",
@@ -77,13 +85,13 @@ if (shortRoot) {
   // The same trick aimed at the ALLOWED file must still be permitted: the
   // check has to normalise, not merely string-compare.
   cases.push([
-    "8.3 short name, allowed file",
+    "legacy short path, allowed",
     "read_text_file",
     { path: join(shortRoot, "app", "data", "catalog.json") },
     "pass",
   ]);
 } else {
-  console.log("(8.3 short names unavailable on this volume — cases skipped)");
+  console.log("(legacy short paths unavailable on this volume — cases skipped)");
 }
 
 const proxy = spawn(
@@ -93,10 +101,7 @@ const proxy = spawn(
     "--allow",
     catalog,
     "--",
-    // Same launch shape as .mcp.json: a JS entry point, so the proxy takes its
-    // no-shell spawn branch. Launching via `npx` here would exercise a
-    // different branch than the one the host actually uses.
-    join(root, "node_modules", "@modelcontextprotocol", "server-filesystem", "dist", "index.js"),
+    ...childCommand,
     root, // child sees everything; the proxy is the only boundary
   ],
   { stdio: ["pipe", "pipe", "pipe"], cwd: root },
@@ -169,14 +174,18 @@ const okList = names.join(",") === "list_allowed_directories,read_text_file";
 console.log(`\ntools/list exposes only forwarded tools: ${okList ? "ok" : "FAIL"} (${names})`);
 if (!okList) failed++;
 
-// The proxy must spawn the child WITHOUT a shell. Launching through `npx`
-// forces shell:true on Windows, and Node then warns that arguments are
-// concatenated rather than escaped (DEP0190) — poor form in a component whose
-// job is filtering. Asserting on the warning keeps the config from regressing
-// to a shell launch without anyone noticing.
-const noShell = !/DEP0190/.test(stderr);
-console.log(`child spawned without a shell: ${noShell ? "ok" : "FAIL (DEP0190 present)"}`);
-if (!noShell) failed++;
+// The proxy must spawn the child without a shell; DEP0190 in stderr means it
+// used one. Asserting on the warning keeps the config from drifting back to a
+// shell launch unnoticed. Skipped where npm is not beside node, because there
+// `resolveNpx` falls back to the shell branch on purpose (see fs-proxy.mjs).
+const npxCli = join(dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js");
+if (!existsSync(npxCli)) {
+  console.log("\nchild spawned without a shell: skipped (npm not beside node — proxy falls back)");
+} else {
+  const noShell = !/DEP0190/.test(stderr);
+  console.log(`\nchild spawned without a shell: ${noShell ? "ok" : "FAIL (DEP0190 present)"}`);
+  if (!noShell) failed++;
+}
 
 console.log("\nBypass attempts");
 cases.forEach(([label, , , want], i) => {

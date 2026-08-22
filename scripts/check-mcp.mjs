@@ -6,12 +6,9 @@
  * answers against ground truth computed from `app/dist` in this process.
  *
  * Run: npm run check         (after npm run setup)
- *      npm run probe         same conversation, but dumps the raw JSON-RPC
- *                            frames instead of the pass/fail summary
- *
- * `probe` exists so nobody has to paste shell-specific syntax: the bash
- * `printf ... | node` one-liner is a parse error in PowerShell, and the
- * PowerShell array form is meaningless in bash. This works in both.
+ *      npm run probe         same conversation, raw JSON-RPC frames instead of
+ *                            the pass/fail summary — and shell-agnostic, unlike
+ *                            a `printf ... | node` one-liner
  *
  * Exists because the two most common failures are silent: `dist/` is
  * gitignored, so a fresh clone has no server to launch; and a server can start

@@ -14,25 +14,23 @@
  * ------------------------------------------------
  * The server it wraps takes a path argument on nearly every tool, so the
  * boundary has to be enforced by *checking* rather than by *absence*. That is
- * the fragile kind of security: see `enforcePath` below for the six Windows
- * normalisation cases this has to get right, each of which is a real CVE class.
- * The `catalog` server in `mcp-server/` reaches the same goal by having no path
- * parameter at all — nothing to check, nothing to bypass. Prefer that shape.
+ * the fragile kind of security: see `enforce` below for the Windows
+ * normalisation cases it has to get right, each a real CVE class. The `catalog`
+ * server in `mcp-server/` reaches the same goal by having no path parameter at
+ * all — nothing to check, nothing to bypass. Prefer that shape.
  *
  * KNOWN LIMITATION — TOCTOU
  * -------------------------
  * Validation happens in this process; the open happens in the child. Between
  * the two, a symlink could be repointed. A proxy cannot close that window: only
  * the process that opens the file can check and open atomically. This is not a
- * bug to be fixed here — it is inherent to filtering from outside.
- *
- * What the proxy CAN remove is the neighbouring path-confusion gap: it forwards
- * the resolved path rather than the caller's spelling, so the child never
- * re-derives a different file from the same string. See `enforce` below.
+ * bug to be fixed here — it is inherent to filtering from outside. The
+ * neighbouring path-confusion gap it CAN close: see `enforce`.
  */
 
 import { spawn } from "node:child_process";
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 // ── CLI ───────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
@@ -51,10 +49,11 @@ if (!command) {
 /**
  * Canonicalise once, at startup, and fail closed if we cannot.
  *
- * `realpathSync.native` is the load-bearing call: it resolves symlinks and
- * junctions, expands Windows 8.3 short names (`PROGRA~1`), normalises case to
- * the on-disk form, and strips the trailing dots/spaces NTFS silently drops.
- * Doing this on BOTH sides of the comparison is what makes the check sound.
+ * `realpathSync.native` is the load-bearing call: it resolves `..`, symlinks
+ * and junctions, expands legacy short path names (`PROGRA~1`) and `\\?\` device
+ * paths, normalises case to the on-disk form, and strips the trailing
+ * dots/spaces NTFS silently drops. Doing this on BOTH sides of the comparison
+ * is what makes the check sound.
  */
 const allowed = new Set();
 for (let i = 0; i < allowArgs.length; i++) {
@@ -109,8 +108,8 @@ const PATH_ARGS = {
  * split is the standard way a filtering proxy is bypassed. Handing the child the
  * already-resolved path removes the second resolution entirely: there is only
  * one interpretation left, and it is the one the allowlist matched. It also
- * means an allowed file reads however the caller spelled it (upper-case, 8.3
- * short name, traversal), because the child sees the same canonical string.
+ * means an allowed file reads however the caller spelled it (upper-case, legacy
+ * short path, traversal), because the child sees the same canonical string.
  *
  * @returns {{reason: string}|{reason: null, args: object}} refusal reason, or
  *   null plus the arguments to forward.
@@ -128,8 +127,8 @@ function enforce(name, args) {
       if (typeof candidate !== "string") return { reason: `${key} must be a string` };
       let real;
       try {
-        // Resolves .., symlinks, junctions, 8.3 names, \\?\ device paths and
-        // case. A path that does not exist cannot be validated -> refuse.
+        // Same normalisation as the allowlist above; both sides must match.
+        // A path that does not exist cannot be validated -> refuse.
         real = realpathSync.native(candidate);
       } catch {
         return { reason: `path is not readable or does not exist: ${candidate}` };
@@ -146,16 +145,31 @@ function enforce(name, args) {
 }
 
 // ── Wiring ────────────────────────────────────────────────────────────────
-// A JS entry point is run directly by this node — no shell, no PATH lookup,
-// no argument re-parsing. That is the preferred form: pass the resolved
-// dist/index.js of the wrapped server. `npx` on Windows is a .cmd shim, which
-// Node refuses to spawn without a shell (CVE-2024-27980 mitigation), so that
-// form falls back to shell:true. Arguments come from this repo's own
-// .mcp.json, never from the model.
-const isJs = /\.[cm]?js$/i.test(command);
+/**
+ * `npx` on Windows is a .cmd shim, which Node only spawns with `shell: true` —
+ * and a shell means concatenated, unescaped arguments (DEP0190). The shim just
+ * runs npm's `npx-cli.js` beside the node binary, so launching that instead
+ * keeps npx behaviour with no shell at all.
+ *
+ * Convention, not contract: if npm is not beside node, return the command
+ * unchanged and let the shell branch handle it. Rationale: servers.md, «Шел,
+ * якого вдалося уникнути».
+ */
+function resolveNpx(cmd) {
+  if (cmd !== "npx") return cmd;
+  const cli = join(dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js");
+  return existsSync(cli) ? cli : cmd;
+}
+
+// A .js command runs under this node directly: no shell, no PATH lookup, no
+// argument re-parsing. Arguments come from the committed .mcp.json, not the model.
+const resolvedCommand = resolveNpx(command);
+const isJs = /\.[cm]?js$/i.test(resolvedCommand);
 const child = isJs
-  ? spawn(process.execPath, [command, ...commandArgs], { stdio: ["pipe", "pipe", "inherit"] })
-  : spawn(command, commandArgs, {
+  ? spawn(process.execPath, [resolvedCommand, ...commandArgs], {
+      stdio: ["pipe", "pipe", "inherit"],
+    })
+  : spawn(resolvedCommand, commandArgs, {
       stdio: ["pipe", "pipe", "inherit"],
       shell: process.platform === "win32",
     });
@@ -228,25 +242,21 @@ function pump(from, to, transform) {
 
 // host -> child: refuse anything the policy rejects, before it is forwarded.
 pump(process.stdin, child.stdin, (msg) => {
-  // Withhold the client's `roots` capability. This host answers roots/list
-  // with the REPO ROOT, which silently overrides the directory argument the
-  // child was launched with (docs/mcp/SECURITY.md, T-2). Hiding the capability
-  // makes the child fall back to its own args, so the narrow scope becomes real
-  // again — a second, independent layer under this proxy's allowlist.
+  // Withhold the client's `roots` capability. This host answers roots/list with
+  // the REPO ROOT, silently overriding the directory the child was launched with
+  // (docs/mcp/SECURITY.md, T-2). Hiding it makes the child fall back to its own
+  // args — a second, independent layer under this proxy's allowlist.
   if (msg.method === "initialize" && msg.params?.capabilities?.roots) {
     delete msg.params.capabilities.roots;
     console.error("fs-proxy: withheld roots capability; child uses its own args");
     return false; // forward the modified initialize
   }
-  // Withholding the capability is not enough on its own: the wrapped server
-  // handles `notifications/roots/list_changed` by calling `roots/list`
-  // unconditionally, WITHOUT re-checking the capability we just stripped. One
-  // such notification and the child adopts the host's answer — the repo root —
-  // undoing the paragraph above. The allowlist below still refuses every path,
-  // so nothing leaks either way, but the second layer would be gone and
-  // `list_allowed_directories()` would start reporting the repo root, which
-  // reads as "the proxy is broken". Drop the notification: a client that
-  // declares no `roots` capability has no business sending it.
+  // Not enough on its own: the wrapped server answers
+  // `notifications/roots/list_changed` by calling `roots/list` without
+  // re-checking the capability just stripped, so one notification restores the
+  // repo root. Nothing leaks either way — the allowlist still refuses every
+  // path — but the second layer would be gone. Drop it: a client declaring no
+  // `roots` capability has no business sending it.
   if (msg.method === "notifications/roots/list_changed") {
     console.error("fs-proxy: dropped roots/list_changed; child keeps its own args");
     return true; // handled here; do not forward

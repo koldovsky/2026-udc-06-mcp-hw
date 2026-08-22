@@ -73,11 +73,11 @@ in `.mcp.json` at the repo root; their permissions are scoped in
   from a directory to the single file `data/catalog.json`, and refuses
   everything else before the request reaches the server. The host `deny` list
   is a separate layer beside it, matched on **tool name, not path**.
-- **Pin server versions.** `memory` is pinned in `.mcp.json`
-  (`@2026.7.4`); `filesystem` is a devDependency of the root `package.json`
-  (`2026.7.10`), so it is pinned by the lockfile and launched from
-  `node_modules` rather than fetched. `npx -y ...@latest` would run unreviewed
-  upstream code with filesystem access.
+- **Pin server versions.** Both public servers are pinned in `.mcp.json` itself —
+  `memory` at `@2026.7.4`, `filesystem` at `@2026.7.10` — so an upgrade is a
+  visible edit, not a side effect of restarting the host. `npx -y ...@latest`
+  would run unreviewed upstream code with filesystem access. What a tag pin does
+  not cover: T-4 in [`SECURITY.md`](../docs/mcp/SECURITY.md).
 - **Secrets stay as `${ENV_VAR}` — but that alone guarantees nothing.** No
   token is needed here; `MEMORY_FILE_PATH` is `${MCP_MEMORY_FILE}` because the
   path is machine-specific. Put the value in `.claude/settings.local.json` →

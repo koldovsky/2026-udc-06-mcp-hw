@@ -4,7 +4,7 @@
   "private": true,
   "description": "UDC Workshop 6 — MCP homework. Root holds scripts only; the real packages are app/ and mcp-server/.",
   "scripts": {
-    "setup": "npm install && npm run setup:app && npm run setup:server",
+    "setup": "npm run setup:app && npm run setup:server",
     "setup:app": "cd app && npm install && npm run build",
     "setup:server": "cd mcp-server && npm install && npm run build",
     "test": "cd app && npm test",
@@ -12,8 +12,5 @@
     "probe": "node scripts/check-mcp.mjs --raw",
     "verify": "npm run test && npm run check && npm run test:proxy",
     "test:proxy": "node scripts/fs-proxy.test.mjs"
-  },
-  "devDependencies": {
-    "@modelcontextprotocol/server-filesystem": "2026.7.10"
   }
 }
