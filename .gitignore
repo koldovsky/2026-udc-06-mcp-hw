@@ -40,3 +40,6 @@ nul
 # deliberately scope permissions there.
 .claude/*
 !.claude/settings.json
+
+# Local review notes — not part of the submission
+IMPROVEMENTS.md

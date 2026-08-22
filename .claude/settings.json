@@ -1,0 +1,29 @@
+{
+  "enabledMcpjsonServers": ["filesystem", "memory", "catalog"],
+  "permissions": {
+    "allow": [
+      "mcp__catalog__search_inventory",
+      "mcp__catalog__check_stock",
+      "mcp__catalog__low_stock",
+      "mcp__filesystem__read_file",
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__read_multiple_files",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__list_directory_with_sizes",
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__search_files",
+      "mcp__filesystem__get_file_info",
+      "mcp__filesystem__list_allowed_directories",
+      "mcp__memory__read_graph",
+      "mcp__memory__search_nodes",
+      "mcp__memory__open_nodes"
+    ],
+    "deny": [
+      "mcp__filesystem__write_file",
+      "mcp__filesystem__edit_file",
+      "mcp__filesystem__create_directory",
+      "mcp__filesystem__move_file",
+      "mcp__filesystem__read_media_file"
+    ]
+  }
+}
