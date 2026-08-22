@@ -30,7 +30,7 @@ $INSPECT --method tools/call --tool-name check_stock --tool-arg sku=KB-1001 --to
 | 2 | `resources/list` | один — `inventory://catalog` |
 | 3 | `resources/read` | `application/json`, усі 24 товари |
 | 4 | happy path | `KB-1001 … OK — stock 42, reorder level 15` |
-| 5 | невідомий SKU | `found: false` + підказка піти в `search_inventory` |
+| 5 | невідомий SKU | `found: false` + підказка: використати `search_inventory` |
 | 6 | назва товару замість SKU | `Input validation error` від `pattern` — **до D-2** був той самий `found: false`, що й у №5 |
 | 7 | відсутній аргумент | усі 24 товари — **до D-1** був `Input validation error` |
 | 8 | зайвий аргумент | зайве поле проігноровано, відповідь як у №4 |

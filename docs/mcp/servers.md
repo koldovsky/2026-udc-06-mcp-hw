@@ -370,7 +370,7 @@ node. Проксі підміняє одне на інше (`resolveNpx`, `fs-pr
 | **Scope** | Власного доступу до ФС немає. Жоден tool не приймає шлях; єдиний I/O — `loadCatalog()` з імпортованого `app/dist/index.js`, який читає один файл. Історія з `roots` його не стосується — межу тримає відсутність tool'а, що бере шлях. |
 | **Права** | Read-only за конструкцією: write-шляху в коді немає взагалі. Усі 4 tools позначені `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` — але це **самодекларація**, не гарантія (та сама історія *SHOULD*, що й із `roots`). |
 | **Секрети** | Немає жодних. |
-| **Версія** | SDK v2, `@modelcontextprotocol/server@^2.0.0`. |
+| **Версія** | SDK v2, `@modelcontextprotocol/server` `2.0.0` — у `mcp-server/package.json` пін точною версією, не діапазоном. |
 
 **Tools (4):** `search_inventory`, `check_stock`, `low_stock`,
 `inventory_summary`. **Resource:** `inventory://catalog`.
