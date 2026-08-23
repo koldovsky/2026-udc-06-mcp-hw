@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "deny": [
+      "mcp__filesystem__write_file",
+      "mcp__filesystem__edit_file",
+      "mcp__filesystem__create_directory",
+      "mcp__filesystem__move_file",
+      "mcp__memory__delete_entities",
+      "mcp__memory__delete_observations",
+      "mcp__memory__delete_relations"
+    ]
+  }
+}
