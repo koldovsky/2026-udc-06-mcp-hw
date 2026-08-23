@@ -1,0 +1,21 @@
+{
+  "name": "udc-ws06-mcp-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:app": "npm --prefix ../app run build",
+    "build": "npm run build:app && tsc",
+    "typecheck": "npm run build:app && tsc --noEmit",
+    "start": "node ./dist/server.js",
+    "test": "npm run build && node --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^5.6.0"
+  }
+}

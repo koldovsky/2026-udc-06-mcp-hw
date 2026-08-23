@@ -35,6 +35,16 @@ yarn-error.log*
 # Windows Git Bash safety: prevent accidental NUL device files
 nul
 
+# Knowledge graph written by the memory MCP server — local working state,
+# not source. MEMORY_FILE_PATH is set by scripts/mcp-memory.mjs, which builds
+# an absolute path from its own location; .mcp.json just launches that script.
+.mcp-memory.json
+
+# Throwaway trees created inside mcp-server/ by its test suite (it needs a
+# sandbox that can still resolve mcp-server/node_modules by walking up).
+# Removed on exit; ignored so a killed run cannot leave a tracked mess.
+mcp-server/.sandbox-*
+
 # Local agent state — but DO commit .mcp.json (project-scoped MCP config,
 # it is meant to be shared with the team) and .claude/settings.json if you
 # deliberately scope permissions there.
