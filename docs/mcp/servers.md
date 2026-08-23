@@ -205,7 +205,7 @@ read-only.
 filesystem tools and 6 memory tools, and all seven denied names are absent from
 the agent's tool list:
 
-```
+```text
 delete_entities → Permission to use mcp__memory__delete_entities has been denied
 add_observations → addedObservations: [ ... ]   (memory MCP server entity)
 ```
@@ -226,7 +226,7 @@ The memory server's scope was originally written as
 lives in this repo", and did not. The first real tool call through the host
 failed with:
 
-```
+```text
 EROFS: read-only file system, open '//.mcp-memory.json'
 ```
 
@@ -318,7 +318,7 @@ it is four measurements.
 even though the host's own working directory is not the project.** `lsof` on the
 two servers running under the VS Code extension (Claude Code 2.1.237):
 
-```
+```text
 pid 6345  node mcp-server/dist/server.js
   cwd                  = <checkout>
   PWD (inherited env)  = /
@@ -341,14 +341,14 @@ received `DEFAULTVALUE`. So a *server* can read it; the *config* cannot.
 working directory.** Started from the repo root with `app/data`, its own stderr
 reports what it decided:
 
-```
+```text
 Client does not support MCP Roots, using allowed directories set from server args: [ '<checkout>/app/data' ]
 ```
 
 **4. The memory server does not.** Given `MEMORY_FILE_PATH=.mcp-memory-probe.json`
 and the same working directory, the graph was created at
 
-```
+```text
 ~/.npm/_npx/<hash>/node_modules/@modelcontextprotocol/server-memory/dist/.mcp-memory-probe.json
 ```
 
@@ -389,7 +389,7 @@ saw **both** sides of that, which is the whole point of the exercise.
 client of my own that deliberately declared no capabilities, stderr said
 verbatim:
 
-```
+```text
 Client does not support MCP Roots, using allowed directories set from server args: [ '<checkout>/app/data' ]
 ```
 
@@ -398,14 +398,14 @@ Here my argument is what holds, and the scope is the one directory I asked for.
 **Case 2 — Claude Code, the host actually in use.** It *does* support roots. Its
 MCP log for this server records the handshake:
 
-```
+```json
 {"debug": "Received ListRoots request from server", "cwd": "<checkout>"}
 ```
 
 and the server, asked live through the host, now reports something different
 from what `.mcp.json` says:
 
-```
+```text
 list_allowed_directories → <checkout>
 ```
 

@@ -53,7 +53,7 @@ Every tool body runs inside a guard that turns a thrown error into a tool
 result with `isError: true` and a readable message, rather than letting it
 become a protocol-level failure the model cannot read:
 
-```
+```text
 catalog-server could not read the catalog: ENOENT: no such file or directory ...
 Most likely app/ has not been built — run: cd app && npm run build
 ```
@@ -62,7 +62,7 @@ The second line is attached **only** to `ENOENT`, because it is only true of
 `ENOENT`. A corrupt `catalog.json` raises a `SyntaxError` that no rebuild fixes,
 and it is reported without the advice:
 
-```
+```text
 catalog-server could not read the catalog: Unexpected token h in JSON at position 2
 ```
 
@@ -83,13 +83,20 @@ ground truth and must stay untouched.
 
 ## Build and run
 
-`dist/` is gitignored, so a fresh clone must build both packages before the
-host can start the server:
+`dist/` is gitignored, so a fresh clone must build before the host can start the
+server. Both packages need their dependencies installed; after that one build
+covers both, because `npm run build` here builds `app/` first:
 
 ```bash
-cd app && npm install && npm run build && cd ..
-cd mcp-server && npm install && npm run build
+cd app && npm install && cd ../mcp-server && npm install
+npm run build          # runs app's build, then tsc here
 ```
+
+That chain is not a convenience. This package imports `../../app/dist/index.js`
+statically, so with `app/dist` missing the compile fails, and with `app/dist`
+stale the tests below would happily verify last week's domain rules. Building
+`app` is a precondition of building this, so it belongs in the script rather
+than in a sentence someone has to read first.
 
 Layout matters and should not be "simplified": `src/` and `dist/` sit at the
 same depth, so the relative import `../../app/dist/index.js` is correct in both

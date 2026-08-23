@@ -3,7 +3,7 @@
 **Prompt (identical in A and B, taken verbatim from
 [`materials/ab-question.md`](../materials/ab-question.md)):**
 
-```
+```text
 Which products in our catalog need reordering right now, and what is the
 total value of the stock we are currently holding? Give me the SKUs and
 the total as a number.
@@ -42,6 +42,12 @@ identically to both runs — run B was not handicapped; it simply had one fewer
 server to choose from.
 
 ```bash
+# The prompt, defined once and reused verbatim by both runs — that is the whole
+# point of the comparison, so it is a variable rather than two typed copies.
+PROMPT="Which products in our catalog need reordering right now, and what is the
+total value of the stock we are currently holding? Give me the SKUs and
+the total as a number."
+
 # Run A (catalog server present) — from the repo root
 claude -p "$PROMPT" --strict-mcp-config --mcp-config docs/ab/mcp-a.json \
   --model claude-sonnet-5 \
@@ -67,7 +73,7 @@ cd app && npm run build
 node -e "import('./dist/index.js').then(m=>{const c=m.loadCatalog();console.log(m.lowStock(c).map(p=>p.sku).join(', '));console.log(m.inventoryValue(c));})"
 ```
 
-```
+```text
 SKUs needing reorder (9): DK-4001, WC-8002, DS-6002, MS-2001, MN-3002,
                           HS-5002, SS-1102, KB-1002, CB-7003
 Total inventory value:    46152
@@ -90,7 +96,7 @@ rule arrived inside the tool result.
 
 **Answer:**
 
-```
+```text
 Reorder now (9 SKUs, stock ≤ reorder level):
 DK-4001, WC-8002, DS-6002, MS-2001, MN-3002, HS-5002, SS-1102, KB-1002, CB-7003
 
@@ -128,7 +134,7 @@ it reached for the host's own `Read` and `Bash` instead.
 
 **Answer:**
 
-```
+```text
 Reorder now (stock ≤ reorderLevel, low→high):
 DK-4001 — 0/8, WC-8002 — 1/5, DS-6002 — 2/3, MS-2001 — 3/20, MN-3002 — 4/6,
 HS-5002 — 5/12, SS-1102 — 6/10, KB-1002 — 8/15, CB-7003 — 9/40

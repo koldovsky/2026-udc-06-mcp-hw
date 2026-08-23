@@ -62,8 +62,12 @@ directory, and the one server that cannot use that (`memory`, which resolves a
 relative path against its own package in the npx cache) goes through
 `scripts/mcp-memory.mjs` instead. Do not "fix" these into `${VAR}` paths —
 the host expands `${VAR}` from its own environment, which nothing in this repo
-can feed, and both `${PWD}` and a bare relative path have already failed here
-*silently*. The measurements are in `docs/mcp/servers.md`, "Where the paths
+can feed, and both alternatives have already failed here — in different ways.
+`${PWD}` failed **loudly**: it expanded to `/`, and the server died trying to
+write `//.mcp-memory.json` (`EROFS: read-only file system`). A bare relative
+`MEMORY_FILE_PATH` failed **silently**, which is the worse one: the server
+started, answered `tools/list`, and wrote its graph into the npx cache instead
+of this repo. The measurements are in `docs/mcp/servers.md`, "Where the paths
 come from".
 
 Four rules that matter when working in `app/`:

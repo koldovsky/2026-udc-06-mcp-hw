@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
+    "build:app": "npm --prefix ../app run build",
+    "build": "npm run build:app && tsc",
+    "typecheck": "npm run build:app && tsc --noEmit",
     "start": "node ./dist/server.js",
     "test": "npm run build && node --test \"test/*.test.js\""
   },

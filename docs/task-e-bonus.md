@@ -10,21 +10,29 @@ reproducible command with a diffable JSON answer rather than a screenshot:
 
 ```bash
 cd mcp-server && npm run build
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/list
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method resources/list
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method resources/read --uri inventory://catalog
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name search_inventory --tool-arg query=audio
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name search_inventory
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name check_stock --tool-arg sku=kb-1001
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name check_stock --tool-arg sku=ZZ-9999
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name inventory_value
-npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method resources/read --uri inventory://nope
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method tools/list
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method resources/list
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method resources/read --uri inventory://catalog
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method tools/call --tool-name search_inventory --tool-arg query=audio
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method tools/call --tool-name search_inventory
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method tools/call --tool-name check_stock --tool-arg sku=kb-1001
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method tools/call --tool-name check_stock --tool-arg sku=ZZ-9999
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method tools/call --tool-name inventory_value
+npx -y @modelcontextprotocol/inspector@2.3.0 --cli node ./dist/server.js --method resources/read --uri inventory://nope
 ```
 
 The plan was deliberate: list the surface first (what does the host actually
 see?), then read the resource, then call each tool on a happy path, then push
 every tool off its happy path — missing argument, wrong case, unknown SKU,
 unknown URI.
+
+Note on the commands above: the session itself ran them without `-y` and without
+a version, which resolved to 2.3.0 at the time. They are written pinned here for
+the same reason the servers in `.mcp.json` are pinned — an unversioned `npx` can
+resolve to a different Inspector on a different day, and a debugging transcript
+whose tool changed underneath is not reproducible. The `$ npx …` lines quoted
+further down are left exactly as they were typed, because those are records of
+what ran, not instructions to run.
 
 ## What we saw
 
@@ -49,7 +57,7 @@ the published protocol surface, which is the only thing a host can act on.
 resolved to `KB-1001`, and `sku=ZZ-9999` came back as a plain sentence — an
 answer, not a crash:
 
-```
+```text
 No product with SKU "ZZ-9999" in the catalog.
 ```
 
@@ -98,7 +106,7 @@ description states the behaviour explicitly. The schema no longer lists
 
 After the fix, an argument-less call answered:
 
-```
+```text
 24 product(s) matched "":
 ```
 
@@ -110,7 +118,7 @@ the user, that wording invites a wrong paraphrase.
 
 ### Verification after the fix
 
-```
+```console
 $ npx @modelcontextprotocol/inspector --cli node ./dist/server.js --method tools/call --tool-name search_inventory
 {
   "content": [{ "type": "text", "text": "Whole catalog (24 product(s)):\nKB-1001 — Mechanical Keyboard TKL ..." }]
@@ -123,7 +131,7 @@ Both findings are locked in by tests, so they cannot regress silently:
 - The schema assertion in `exposes four read-only tools...` was inverted from
   `required: ["query"]` to `required: undefined` plus `default: ""`.
 
-```
+```console
 $ cd mcp-server && npm test
 ℹ tests 16
 ℹ pass 16
@@ -149,7 +157,7 @@ are still in it, unchanged.
 treats the unrecognised argument as the **server command to launch** and tries to
 spawn it, which fails with:
 
-```
+```text
 Failed to start transport: spawn --version ENOENT
 ```
 
