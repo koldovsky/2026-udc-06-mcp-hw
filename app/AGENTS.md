@@ -45,5 +45,20 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Servers registered in `.mcp.json` at the repo root (Claude Code). Full scope
+rationale and verification live in `docs/mcp/servers.md` — this is just the
+"what and why" for someone working in `app/`.
+
+- **filesystem** (`@modelcontextprotocol/server-filesystem`) — lets the agent
+  read/write repo files directly (`src/*.ts`, `data/catalog.json`, docs)
+  instead of pasting file contents into chat. Scoped to the repo root, not
+  `~` or `/`.
+- **memory** (`@modelcontextprotocol/server-memory`) — a knowledge-graph
+  scratchpad for the agent to hold notes across a chat session (e.g. running
+  conclusions across Task A–E). No access to this repo's filesystem at all;
+  it persists to its own file outside the project.
+
+Both are read-only with respect to `app/`'s domain logic — neither server
+executes or reimplements anything from `src/catalog.ts`.
