@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:/Users/slpir/IdeaProjects/2026-udc-06-mcp-hw"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "catalog": {
+      "command": "node",
+      "args": [
+        "C:/Users/slpir/IdeaProjects/2026-udc-06-mcp-hw/mcp-server/dist/server.js"
+      ]
+    }
+  }
+}
