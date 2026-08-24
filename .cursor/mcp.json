@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.7.10",
+        "~/VSCodeProjects/2026-udc-06-mcp-hw/app/data/"
+      ]
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory@2026.7.4"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "~/VSCodeProjects/2026-udc-06-mcp-hw/.cursor/memory.jsonl"
+      }
+    },
+    "inventory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "tsx",
+        "~/VSCodeProjects/2026-udc-06-mcp-hw/mcp-server/dist/server.js"
+      ]
+    }
+  }
+}

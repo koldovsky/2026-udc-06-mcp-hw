@@ -220,13 +220,13 @@ scope вузький і пояснений, `## MCPs` є в `app/AGENTS.md`.
 
 ## Definition of Done
 
-- [ ] **Task A:** конфіг MCP (≥2 сервери, вузький scope, `${ENV}`) + `docs/mcp/servers.md` + `## MCPs` в `app/AGENTS.md`
-- [ ] **Task B:** `mcp-server/` — ≥2 tools + ≥1 resource, read-only, логіка імпортована з `app/`
-- [ ] **Task C:** `docs/mcp/SECURITY.md` під власну конфігурацію
-- [ ] **Task D:** `docs/ab-validation.md` — реальні обидва прогони
+- [x] **Task A:** конфіг MCP (≥2 сервери, вузький scope, `${ENV}`) + `docs/mcp/servers.md` + `## MCPs` в `app/AGENTS.md`
+- [x] **Task B:** `mcp-server/` — ≥2 tools + ≥1 resource, read-only, логіка імпортована з `app/`
+- [x] **Task C:** `docs/mcp/SECURITY.md` під власну конфігурацію
+- [x] **Task D:** `docs/ab-validation.md` — реальні обидва прогони
 - [ ] **Task E (bonus):** `docs/task-e-bonus.md` (опціонально)
-- [ ] `cd app && npm test` зелений
-- [ ] `git grep -nE "ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}"` → нічого; `.env` не закомічено
+- [x] `cd app && npm test` зелений
+- [x] `git grep -nE "ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}"` → нічого; `.env` не закомічено
 
 ## Здача
 

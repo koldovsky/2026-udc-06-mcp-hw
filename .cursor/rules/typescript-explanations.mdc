@@ -1,0 +1,13 @@
+---
+description: Extra TypeScript explanations for the user who is not yet proficient in TS
+alwaysApply: true
+---
+
+# TypeScript explanations
+
+The user is **not proficient with TypeScript**. Whenever you write, change, or discuss TypeScript:
+
+- Add short plain-language explanations of what the code does and why.
+- Explain types, interfaces, generics, imports, `async`/`await`, and other TS-only syntax the first time they appear in a change.
+- Prefer a brief teaching comment above non-obvious lines over assuming the reader already knows TS.
+- Do not skip this for “simple” snippets — still say what the types and exports mean.
