@@ -11,6 +11,12 @@
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "catalog": {
+      "command": "node",
+      "args": [
+        "/Users/liudmyla.minenkova/Documents/Raif_AI/2026-udc-06-mcp-hw/mcp-server/dist/server.js"
+      ]
     }
   }
 }
