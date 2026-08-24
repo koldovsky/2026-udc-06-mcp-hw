@@ -19,6 +19,14 @@
       "env": {
         "MEMORY_FILE_PATH": "~/VSCodeProjects/2026-udc-06-mcp-hw/.cursor/memory.jsonl"
       }
+    },
+    "inventory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "tsx",
+        "~/VSCodeProjects/2026-udc-06-mcp-hw/mcp-server/dist/server.js"
+      ]
     }
   }
 }
