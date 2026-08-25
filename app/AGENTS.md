@@ -45,5 +45,14 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Servers configured in `.mcp.json` (Claude Code host):
+
+| Server | Package | Why |
+|---|---|---|
+| **filesystem** | `@modelcontextprotocol/server-filesystem` | Direct read/write access to the repo for file-level tasks. Scope: repo root only. |
+| **memory** | `@modelcontextprotocol/server-memory` | In-session scratch-pad for the agent; nothing persisted to disk. |
+| **catalog** | `mcp-server/dist/server.js` (local) | Typed API over this catalog domain: `search_inventory`, `low_stock`, `inventory_value`, resource `inventory://catalog`. Read-only. |
+
+The catalog server imports its logic from `app/dist/` — run `npm run build` first.
