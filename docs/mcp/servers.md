@@ -11,10 +11,10 @@
 |---|---|
 | **Навіщо** | Читати вихідний код, `catalog.json` та артефакти в репо безпосередньо з агента без ручного copy-paste |
 | **Транспорт** | stdio |
-| **Як запускається** | `npx -y @modelcontextprotocol/server-filesystem <path>` |
+| **Як запускається** | `npx -y @modelcontextprotocol/server-filesystem@2026.7.10 .` |
 | **Область доступу (scope)** | `.` (корінь репо) — лише цей репозиторій. Домашня тека (`~`) або диск (`C:/`) не потрібні: усі файли, якими оперує завдання, лежать тут. |
 | **Секрети** | немає |
-| **Версія** | плаваюча (`-y` без фіксованої версії) — прийнятно для локальної навчальної роботи, неприйнятно для командного/CI середовища |
+| **Версія** | зафіксована `2026.7.10` |
 
 **Які tools він дав агенту:** `read_file`, `read_multiple_files`, `write_file`, `create_directory`, `list_directory`, `directory_tree`, `move_file`, `search_files`, `get_file_info`, `list_allowed_directories`
 
@@ -32,10 +32,10 @@
 |---|---|
 | **Навіщо** | Зберігати проміжні нотатки агента між запитами в рамках сесії — без запису у файли репо |
 | **Транспорт** | stdio |
-| **Як запускається** | `npx -y @modelcontextprotocol/server-memory` |
+| **Як запускається** | `npx -y @modelcontextprotocol/server-memory@2026.7.4` |
 | **Область доступу (scope)** | In-memory store; нічого не зберігається на диску і не виходить за межі процесу |
 | **Секрети** | немає |
-| **Версія** | плаваюча |
+| **Версія** | зафіксована `2026.7.4` |
 
 **Які tools він дав агенту:** `create_entities`, `create_relations`, `add_observations`, `delete_entities`, `delete_observations`, `delete_relations`, `read_graph`, `open_nodes`, `search_nodes`
 
