@@ -1,0 +1,45 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.7.10",
+        "./app/data"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory@2026.7.4"
+      ]
+    },
+    "catalog": {
+      "command": "node",
+      "args": [
+        "./mcp-server/dist/server.js"
+      ]
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "${HOST_CA_BUNDLE:-/etc/ssl/cert.pem}:/etc/ssl/certs/ca-certificates.crt:ro",
+        "-e",
+        "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server@sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699",
+        "stdio",
+        "--read-only"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
