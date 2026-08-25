@@ -1,7 +1,8 @@
 # A/B-валідація MCP (Task D)
 
 **Промпт (однаковий для A і B):**
-```
+
+```text
 Which products in our catalog need reordering right now, and what is the
 total value of the stock we are currently holding? Give me the SKUs and
 the total as a number.
@@ -26,7 +27,7 @@ cd app && npm run build
 node -e "import('./dist/index.js').then(m=>{const c=m.loadCatalog();console.log(m.lowStock(c).map(p=>p.sku).join(', '));console.log(m.inventoryValue(c));})"
 ```
 
-```
+```text
 SKU, що потребують дозамовлення: DK-4001, WC-8002, DS-6002, MS-2001, MN-3002, HS-5002, SS-1102, KB-1002, CB-7003
 Загальна вартість запасів: 46152
 ```
@@ -45,7 +46,8 @@ SKU, що потребують дозамовлення: DK-4001, WC-8002, DS-60
 5. `mcp__catalog__inventory_value({})` — отримав загальну вартість запасів
 
 **Відповідь:**
-```
+
+```text
 Products needing reordering (9 items):
 DK-4001, WC-8002, DS-6002, MS-2001, MN-3002, HS-5002, SS-1102, KB-1002, CB-7003
 
@@ -68,7 +70,8 @@ Total inventory value: 46152.00
 Після прочитання `catalog.json` агент вручну перерахував товари зі `stock <= reorderLevel` і підсумував `price * stock`.
 
 **Відповідь:**
-```
+
+```text
 SKUs Requiring Reorder:
 KB-1002, MS-2001, MN-3002, DK-4001, HS-5002, CB-7003, WC-8002, DS-6002, SS-1102
 
