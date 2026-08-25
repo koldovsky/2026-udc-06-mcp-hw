@@ -45,5 +45,7 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+- **filesystem** — provides filesystem operations scoped to `app/data` only. The restricted scope avoids exposing the rest of the repository or the user's filesystem.
+- **memory** — provides persistent knowledge-graph memory across agent sessions. It requires no credentials.

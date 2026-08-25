@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "./app/data"
+      ],
+      "env": {}
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "env": {}
+    },
+    "catalog": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "./mcp-server/dist/server.js"
+      ],
+      "env": {}
+    }
+  }
+}
