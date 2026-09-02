@@ -45,5 +45,27 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Servers this project expects to have connected. Config lives at `.mcp.json`
+(project root) and `.vscode/mcp.json`; full rationale in
+[`docs/mcp/servers.md`](../docs/mcp/servers.md), threat model in
+`docs/mcp/SECURITY.md`.
+
+| Server | Scope | What it is for |
+|---|---|---|
+| `filesystem` (`@modelcontextprotocol/server-filesystem@2026.8.31`) | **only** `app/data/` | Read `catalog.json` directly. Deliberately narrow — the agent needs one file, not the repo. |
+| `memory` (`@modelcontextprotocol/server-memory@2026.8.31`) | `.mcp-memory/memory.json` (gitignored) | Carry decisions across sessions — needed because Task D compares two separate chats. |
+
+Rules for agents working here:
+
+- The `filesystem` server also exposes **write** tools (`write_file`,
+  `edit_file`, `move_file`). Do not use them on `data/catalog.json` — it is the
+  Task D ground truth and must stay byte-identical.
+- Versions are **pinned on purpose**. Do not "helpfully" switch them to
+  `@latest`; bumping a version is a deliberate commit, not a default.
+- No server in this project needs a token. If one ever does, reference it as
+  `${ENV_VAR}` in the config and keep the value in the gitignored `.env`.
+- No network-facing MCP server is connected (`fetch` was rejected on purpose):
+  untrusted web content plus a write-capable filesystem tool is a prompt
+  injection path, not a convenience.

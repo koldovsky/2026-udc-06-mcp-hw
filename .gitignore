@@ -40,3 +40,8 @@ nul
 # deliberately scope permissions there.
 .claude/*
 !.claude/settings.json
+
+# MCP memory server knowledge graph (MEMORY_FILE_PATH) — local state, not an
+# artifact. Scoped here on purpose instead of the npx cache default.
+.mcp-memory/
+

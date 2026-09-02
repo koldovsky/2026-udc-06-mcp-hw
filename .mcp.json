@@ -1,0 +1,25 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/2025-06-18/mcp.json",
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.8.31",
+        "./app/data"
+      ],
+      "env": {}
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory@2026.8.31"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "./.mcp-memory/memory.json"
+      }
+    }
+  }
+}
+
