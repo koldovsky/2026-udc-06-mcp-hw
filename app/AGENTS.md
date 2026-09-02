@@ -45,5 +45,36 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Servers this project expects to have connected. Config lives at `.mcp.json`
+(project root) and `.vscode/mcp.json`; full rationale in
+[`docs/mcp/servers.md`](../docs/mcp/servers.md), threat model in
+`docs/mcp/SECURITY.md`.
+
+| Server | Scope | What it is for |
+|---|---|---|
+| `filesystem` (`@modelcontextprotocol/server-filesystem@2026.8.31`) | **only** `app/data/` | Read `catalog.json` directly. Deliberately narrow — the agent needs one file, not the repo. |
+| `memory` (`@modelcontextprotocol/server-memory@2026.8.31`) | `.mcp-memory/memory.json` (gitignored) | Carry decisions across sessions — needed because Task D compares two separate chats. |
+| `catalog` (local, `mcp-server/`) | `app/data/catalog.json` via `app/`'s `loadCatalog()` | Our own read-only server (Task B): tools `search_inventory`, `check_stock`, `low_stock`; resources `inventory://catalog` and `inventory://category/{category}`. |
+
+Rules for agents working here:
+
+- Prefer the `catalog` server's tools over reading `data/catalog.json` and
+  aggregating by hand — `low_stock` and `inventory://catalog` are the tested
+  domain functions, hand arithmetic over 24 rows is not.
+- `mcp-server/` must stay a **thin adapter**: import from `app/dist/`, never
+  reimplement a catalog rule there. Do not change exported signatures in
+  `src/catalog.ts` — the server depends on them.
+- `mcp-server/` is **read-only by contract** (`readOnlyHint` on every tool). Do
+  not add a tool that writes, deletes, or makes a network call.
+- The `filesystem` server also exposes **write** tools (`write_file`,
+  `edit_file`, `move_file`). Do not use them on `data/catalog.json` — it is the
+  Task D ground truth and must stay byte-identical.
+- Versions are **pinned on purpose**. Do not "helpfully" switch them to
+  `@latest`; bumping a version is a deliberate commit, not a default.
+- No server in this project needs a token. If one ever does, reference it as
+  `${ENV_VAR}` in the config and keep the value in the gitignored `.env`.
+- No network-facing MCP server is connected (`fetch` was rejected on purpose):
+  untrusted web content plus a write-capable filesystem tool is a prompt
+  injection path, not a convenience.
