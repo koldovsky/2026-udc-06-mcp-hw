@@ -19,6 +19,13 @@
       "env": {
         "MEMORY_FILE_PATH": "${workspaceFolder}/.mcp-memory/memory.json"
       }
+    },
+    "catalog": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/mcp-server/dist/server.js"
+      ]
     }
   }
 }
