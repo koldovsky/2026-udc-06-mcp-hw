@@ -45,5 +45,28 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Servers registered in the repo-level `.mcp.json` (see `docs/mcp/servers.md` for
+full scope, versions, and verification details):
+
+- **filesystem** — scoped to `app/data` only, so the agent can read
+  `catalog.json` directly instead of having its contents pasted into the
+  conversation. Cannot see `src/`, `.env`, or anything outside that one
+  directory.
+- **memory** — a per-session knowledge graph the agent can use to note
+  intermediate findings (e.g. which SKUs it already checked) without
+  re-reading the catalog on every step. Local state file lives at
+  `.mcp-memory/` (gitignored).
+- **catalog** (`mcp-server/`, Task B) — our own read-only server over this
+  library. Exposes `search_inventory`, `check_stock`, `low_stock` as tools
+  and `inventory://catalog`, `inventory://categories` as resources. Imports
+  `searchProducts`, `findBySku`, `lowStock`, `categories`, `inventoryValue`,
+  `loadCatalog` from `app/dist/index.js` rather than reimplementing them —
+  the whole point is that the catalog logic stays in this one tested place.
+  Run `npm run build` here before starting it, or it has nothing to import.
+
+Filesystem and memory are read-only in intent for this project (no
+write/delete/network tool is ever invoked here); `catalog` is read-only by
+construction (no tool writes, deletes, or calls the network). All three
+require no tokens and are pinned to a fixed version rather than `latest`.
