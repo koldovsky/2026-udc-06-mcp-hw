@@ -45,5 +45,11 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+Configured in `../.mcp.json` (details and scope: `../docs/mcp/servers.md`).
+
+- **filesystem** — read access to `app/data` only, so the agent can inspect
+  `catalog.json` directly. Do not widen the path; do not use it to edit the data.
+- **memory** — knowledge-graph notes across sessions, stored outside the repo
+  (`MEMORY_FILE_PATH`). Never store secrets or real business data in it.
