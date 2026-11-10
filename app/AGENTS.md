@@ -45,5 +45,21 @@ them.
 - Never add real business data, PII, or secrets here. Everything is synthetic
   on purpose.
 
-<!-- Task A adds a "## MCPs" section here, documenting the servers this
-     project expects to have connected and what each is for. -->
+## MCPs
+
+`.mcp.json` (repo root) connects three MCP servers — two public, one our own:
+
+- **filesystem** (public, `@modelcontextprotocol/server-filesystem`) — read the
+  catalog files. Configured for `app/data`, but Claude Code's roots widen it to
+  the repo root. Its write tools are denied in `.claude/settings.json`; never
+  use it to modify `data/catalog.json`.
+- **memory** (public, `@modelcontextprotocol/server-memory`) — knowledge-graph
+  notes, persisted in `<repo>/.mcp-memory.jsonl` (gitignored), so they survive
+  across sessions. Delete the file to reset.
+- **catalog** (own, `mcp-server/`) — read-only tools `search_inventory`,
+  `check_stock`, `low_stock`, `catalog_summary` and resource
+  `catalog://summary`, built on this library's exported functions. Prefer it
+  for catalog questions; it needs `npm run build` here first.
+
+See `docs/mcp/servers.md` for scope rationale and `docs/mcp/SECURITY.md` for
+the threat model.
